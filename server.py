@@ -45,6 +45,21 @@ def get_followed_podcasts():
         podcasts.append(tuple(i))
     return {'podcasts': podcasts}
 
+@app.route('/playlists', methods=['GET'])
+def get_created_playlists():
+    req = request.get_json()
+    uid = req['uid']
+
+    db = g.conn.execute("SELECT P.playlist_name, P.playlist_id \
+                          FROM Playlists P, creates C \
+                          WHERE C.user_id = %s AND P.playlist_id = C.playlist_id;", uid)
+    
+    playlists = []
+    for i in db:
+        playlists.append(tuple(i))
+    return {'playlists': playlists}
+
+
 if __name__ == "__main__":
   import click
 
