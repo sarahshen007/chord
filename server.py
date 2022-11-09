@@ -83,6 +83,20 @@ def get_recommended_songs():
         rec_songs.append(tuple(i))
     return {'recommended_songs': random.sample(rec_songs, 4)}
 
+@app.route('/artist_albums', methods=['GET'])
+def get_artist_albums():
+    req = request.get_json()
+    aid = req['aid']
+
+    db = g.conn.execute("SELECT A.album_name, A.album_id \
+                          FROM Albums A, By B \
+                          WHERE B.artist_id = %s AND A.album_id = B.album_id;", aid)
+    
+    albums = []
+    for i in db:
+        albums.append(tuple(i))
+    return {'albums': albums}
+
 if __name__ == "__main__":
   import click
 
