@@ -1,5 +1,4 @@
 import os
-from typing import Tuple
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
@@ -20,7 +19,7 @@ def before_request():
     g.conn = None
 
 @app.route('/songs', methods=['GET'])
-def get_songs() -> Tuple[str, bool]:
+def get_liked_songs():
     req = request.get_json()
     uid = req['uid']
     db = g.conn.execute("SELECT S.song_name, L.song_id \
@@ -31,6 +30,20 @@ def get_songs() -> Tuple[str, bool]:
     for i in db:
         songs.append(tuple(i))
     return {'songs': songs}
+
+@app.route('/podcasts', methods=['GET'])
+def get_followed_podcasts():
+    req = request.get_json()
+    uid = req['uid']
+
+    db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
+                          FROM Podcasts P, follows2 F \
+                          WHERE F.user_id = %s AND P.podcast_id = F.podcast_id;", uid)
+    
+    podcasts = []
+    for i in db:
+        podcasts.append(tuple(i))
+    return {'podcasts': podcasts}
 
 if __name__ == "__main__":
   import click
