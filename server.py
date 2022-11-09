@@ -74,9 +74,9 @@ def get_recommended_songs():
 
     max_g = [i for i in db]
 
-    db_songs = engine.execute("SELECT S.song_name, S.song_id \
+    db_songs = g.conn.execute("SELECT S.song_name, S.song_id \
                                FROM Songs S, Is_genre I \
-                               WHERE S.song_id = I.song_id AND I.genre_name = %s", max_g[0][0])
+                               WHERE S.song_id = I.song_id AND I.genre_name = %s;", max_g[0][0])
     
     rec_songs = []
     for i in db_songs:
