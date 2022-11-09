@@ -1,4 +1,5 @@
 import os
+import random
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
@@ -59,6 +60,28 @@ def get_created_playlists():
         playlists.append(tuple(i))
     return {'playlists': playlists}
 
+@app.route('/song_recommendations', methods=['GET'])
+def get_recommended_songs():
+    req = request.get_json()
+    uid = req['uid']
+
+    db = g.conn.execute("SELECT I.genre_name \
+                        FROM likes_song L, is_genre I \
+                        WHERE L.song_id = I.song_id AND L.user_id = %s \
+                        GROUP BY I.genre_name \
+                        ORDER BY COUNT(*) DESC \
+                        LIMIT 1;", uid)
+
+    max_g = [i for i in db]
+
+    db_songs = engine.execute("SELECT S.song_name, S.song_id \
+                               FROM Songs S, Is_genre I \
+                               WHERE S.song_id = I.song_id AND I.genre_name = %s", max_g[0][0])
+    
+    rec_songs = []
+    for i in db_songs:
+        rec_songs.append(tuple(i))
+    return {'recommended_songs': random.sample(rec_songs, 4)}
 
 if __name__ == "__main__":
   import click
