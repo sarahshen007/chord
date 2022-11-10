@@ -97,6 +97,20 @@ def get_artist_albums():
         albums.append(tuple(i))
     return {'albums': albums}
 
+@app.route('/podcast_episodes', methods=['GET'])
+def get_podcast_episodes():
+    req = request.get_json()
+    pid = req['pid']
+
+    db = g.conn.execute("SELECT E.episode_name, E.episode_id \
+                          FROM Episodes E, Contains2 C \
+                          WHERE C.podcast_id = %s AND E.episode_id = C.episode_id;", pid)
+
+    episodes = []
+    for i in db:
+        episodes.append(tuple(i))
+    return {'episodes': episodes}
+
 if __name__ == "__main__":
   import click
 
