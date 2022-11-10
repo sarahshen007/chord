@@ -5,9 +5,7 @@ from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
 app = Flask(__name__)
-
 DATABASEURI = "postgresql://ss6170:6400@34.75.94.195/proj1part2"
-
 engine = create_engine(DATABASEURI)
 
 @app.before_request
@@ -36,7 +34,6 @@ def get_liked_songs():
 def get_followed_podcasts():
     req = request.get_json()
     uid = req['uid']
-
     db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
                           FROM Podcasts P, follows2 F \
                           WHERE F.user_id = %s AND P.podcast_id = F.podcast_id;", uid)
@@ -50,7 +47,6 @@ def get_followed_podcasts():
 def get_created_playlists():
     req = request.get_json()
     uid = req['uid']
-
     db = g.conn.execute("SELECT P.playlist_name, P.playlist_id \
                           FROM Playlists P, creates C \
                           WHERE C.user_id = %s AND P.playlist_id = C.playlist_id;", uid)
@@ -64,7 +60,6 @@ def get_created_playlists():
 def get_recommended_songs():
     req = request.get_json()
     uid = req['uid']
-
     db = g.conn.execute("SELECT I.genre_name \
                         FROM likes_song L, is_genre I \
                         WHERE L.song_id = I.song_id AND L.user_id = %s \
@@ -87,7 +82,6 @@ def get_recommended_songs():
 def get_artist_albums():
     req = request.get_json()
     artist_id = req['artist_id']
-
     db = g.conn.execute("SELECT A.album_name, A.album_id \
                           FROM Albums A, By B \
                           WHERE B.artist_id = %s AND A.album_id = B.album_id;", artist_id)
@@ -101,7 +95,6 @@ def get_artist_albums():
 def get_podcast_episodes():
     req = request.get_json()
     podcast_id = req['podcast_id']
-
     db = g.conn.execute("SELECT E.episode_name, E.episode_id \
                           FROM Episodes E, Contains2 C \
                           WHERE C.podcast_id = %s AND E.episode_id = C.episode_id;", podcast_id)
@@ -115,7 +108,6 @@ def get_podcast_episodes():
 def get_album_songs():
     req = request.get_json()
     album_id = req['album_id']
-
     db = g.conn.execute("SELECT S.song_name, S.song_id \
                           FROM Songs S, Is_genre I \
                           WHERE I.album_id = %s AND S.song_id = I.song_id;", album_id)
@@ -129,7 +121,6 @@ def get_album_songs():
 def get_playlist_songs():
     req = request.get_json()
     playlist_id = req['playlist_id']
-
     db = g.conn.execute("SELECT S.song_name, S.song_id \
                           FROM Songs S, Contains C \
                           WHERE C.playlist_id = %s AND S.song_id = C.song_id;", playlist_id)
