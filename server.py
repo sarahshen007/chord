@@ -86,11 +86,11 @@ def get_recommended_songs():
 @app.route('/artist_albums', methods=['GET'])
 def get_artist_albums():
     req = request.get_json()
-    aid = req['aid']
+    artist_id = req['artist_id']
 
     db = g.conn.execute("SELECT A.album_name, A.album_id \
                           FROM Albums A, By B \
-                          WHERE B.artist_id = %s AND A.album_id = B.album_id;", aid)
+                          WHERE B.artist_id = %s AND A.album_id = B.album_id;", artist_id)
     
     albums = []
     for i in db:
@@ -100,7 +100,7 @@ def get_artist_albums():
 @app.route('/podcast_episodes', methods=['GET'])
 def get_podcast_episodes():
     req = request.get_json()
-    pid = req['pid']
+    pid = req['podcast_id']
 
     db = g.conn.execute("SELECT E.episode_name, E.episode_id \
                           FROM Episodes E, Contains2 C \
@@ -110,6 +110,20 @@ def get_podcast_episodes():
     for i in db:
         episodes.append(tuple(i))
     return {'episodes': episodes}
+
+@app.route('/album_songs', methods=['GET'])
+def get_album_songs():
+    req = request.get_json()
+    album_id = req['album_id']
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id \
+                          FROM Songs S, Is_genre I \
+                          WHERE I.album_id = %s AND S.song_id = I.song_id;", album_id)
+    
+    album_songs = []
+    for i in db:
+        album_songs.append(tuple(i))
+    return {'album_songs': album_songs}
 
 if __name__ == "__main__":
   import click
