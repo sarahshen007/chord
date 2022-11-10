@@ -139,6 +139,29 @@ def get_playlist_songs():
         playlist_songs.append(tuple(i))
     return {'playlist_songs': playlist_songs}
 
+@app.route('/search', methods=['GET'])
+def search_entities():
+    req = request.get_json()
+    query = req['query']
+    entities = [("Songs", "song_name", "song_id"), ("Podcasts", "podcast_name", "podcast_id"), 
+                ("Episodes", "episode_name", "episode_id"), ("Playlists", "playlist_name", "playlist_id"), 
+                ("Users", "username", "user_id"), ("Albums", "album_name", "album_id"), 
+                ("Artists", "artist_name", "artist_id")]
+    
+    res = {}
+    for e in entities:
+        db = g.conn.execute("SELECT "+e[0]+"."+e[1]+", "+e[0]+"."+e[2]+" \
+                             FROM "+e[0]+" \
+                             WHERE "+e[0]+"."+e[1]+"~* %s", 
+                             query)
+        
+        vals = []
+        for i in db:
+            vals.append(tuple(i))
+        res[e[0]] = vals
+    
+    return res
+
 if __name__ == "__main__":
   import click
 
