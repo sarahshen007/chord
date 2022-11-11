@@ -237,12 +237,26 @@ def enqueue_playlist():
 
     db = g.conn.execute("SELECT S.song_name, S.song_id \
                          FROM Songs S, Contains C \
-                         WHERE C.playlist_id = %s", playlist_id)
+                         WHERE C.playlist_id = %s AND S.song_id = C.song_id", playlist_id)
     
     for i in db:
         q.append(tuple(i))
     
     return {"Insertion": playlist_id}
+
+@app.route('/enqueue_album', methods=['POST'])
+def enqueue_album():
+    req = request.get_json()
+    album_id = req['album_id']
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id \
+                         FROM Songs S, By B \
+                         WHERE B.album_id = %s AND S.song_id = B.song_id", album_id)
+    
+    for i in db:
+        q.append(tuple(i))
+    
+    return {"Insertion": album_id}
 
 if __name__ == "__main__":
   import click
