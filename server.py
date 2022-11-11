@@ -244,6 +244,11 @@ def enqueue_playlist():
     
     return {"Insertion": playlist_id}
 
+@app.route('/next_song', methods=['GET'])
+def next_song():
+    song_name, song_id = q.pop(0)
+    return {'song_name': song_name, 'song_id': song_id}
+
 @app.route('/enqueue_album', methods=['POST'])
 def enqueue_album():
     req = request.get_json()
