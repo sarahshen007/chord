@@ -153,7 +153,7 @@ def search_entities():
     
     return res
 
-@app.route('/create_playlist', methods=['GET'])
+@app.route('/create_playlist', methods=['GET', 'POST'])
 def create_playlist():
     req = request.get_json()
     playlist_name = req['playlist_name']
@@ -165,9 +165,19 @@ def create_playlist():
     max_val = [int(i) for i in db]
 
     g.conn.execute("INSERT INTO Playlists(playlist_id, playlist_name) VALUES (%s, %s)", str(max_val+1), playlist_name)
-    g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES (%s, %s", user_id, str(max_val+1))
+    g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES (%s, %s)", user_id, str(max_val+1))
 
-    return str(max_val+1)
+    return {"playlist_id": str(max_val+1)}
+
+@app.route('/add_song', methods=['POST'])
+def add_song():
+    req = request.get_json()
+    song_id = req['song_id']
+    playlist_id = req['playlist_id']
+
+    g.conn.execute("INSERT INTO Contains(playlist_id, song_id) VALUES (%s, %s)", playlist_id, song_id)
+
+    return {"Insertion": (playlist_id, song_id)}
 
 if __name__ == "__main__":
   import click
