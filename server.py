@@ -230,6 +230,20 @@ def enqueue_song():
     
     return {"Insertion": song_id}
 
+@app.route('/enqueue_playlist', methods=['POST'])
+def enqueue_playlist():
+    req = request.get_json()
+    playlist_id = req['playlist_id']
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id \
+                         FROM Songs S, Contains C \
+                         WHERE C.playlist_id = %s", playlist_id)
+    
+    for i in db:
+        q.append(tuple(i))
+    
+    return {"Insertion": playlist_id}
+
 if __name__ == "__main__":
   import click
 
