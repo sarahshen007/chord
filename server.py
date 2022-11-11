@@ -204,6 +204,15 @@ def like_song():
     g.conn.execute("INSERT INTO Likes_song(song_id, user_id) VALUES(%s, %s)", song_id, user_id)
     return {"Insertion": (song_id, user_id)}
 
+@app.route('/like_playlist', methods=['POST'])
+def like_playlist():
+    req = request.get_json()
+    playlist_id = req['playlist_id']
+    user_id = req['user_id']
+
+    g.conn.execute("INSERT INTO Likes_playlist(playlist_id, user_id) VALUES(%s, %s)", playlist_id, user_id)
+    return {"Insertion": (playlist_id, user_id)}
+
 if __name__ == "__main__":
   import click
 
