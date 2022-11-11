@@ -177,7 +177,18 @@ def add_song():
 
     g.conn.execute("INSERT INTO Contains(playlist_id, song_id) VALUES (%s, %s)", playlist_id, song_id)
 
-    return {"Insertion": (playlist_id, song_id)}
+    return {"Insertion": (song_id, playlist_id)}
+
+@app.route('/follow_artist', methods=['POST'])
+def follow_artist():
+    req = request.get_json()
+    artist_id = req['artist_id']
+    user_id = req['user_id']
+
+    g.conn.execute("INSERT INTO Follows(user_id, artist_id) VALUES (%s, %s)", user_id, artist_id)
+
+    return {"Insertion": (artist_id, user_id)}
+
 
 if __name__ == "__main__":
   import click
