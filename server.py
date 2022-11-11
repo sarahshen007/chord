@@ -157,6 +157,7 @@ def search_entities():
 def create_playlist():
     req = request.get_json()
     playlist_name = req['playlist_name']
+    user_id = req['user_id']
 
     db = g.conn.execute("SELECT MAX(P.playlist_id) \
                          FROM Playlists P;")
@@ -164,6 +165,7 @@ def create_playlist():
     max_val = [int(i) for i in db]
 
     g.conn.execute("INSERT INTO Playlists(playlist_id, playlist_name) VALUES (%s, %s)", str(max_val+1), playlist_name)
+    g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES (%s, %s", user_id, str(max_val+1))
 
     return str(max_val+1)
 
