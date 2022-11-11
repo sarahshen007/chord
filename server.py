@@ -164,8 +164,8 @@ def create_playlist():
     
     max_val = [int(i) for i in db]
 
-    g.conn.execute("INSERT INTO Playlists(playlist_id, playlist_name) VALUES (%s, %s)", str(max_val+1), playlist_name)
-    g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES (%s, %s)", user_id, str(max_val+1))
+    g.conn.execute("INSERT INTO Playlists(playlist_id, playlist_name) VALUES(%s, %s)", str(max_val+1), playlist_name)
+    g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES(%s, %s)", user_id, str(max_val+1))
 
     return {"playlist_id": str(max_val+1)}
 
@@ -175,7 +175,7 @@ def add_song():
     song_id = req['song_id']
     playlist_id = req['playlist_id']
 
-    g.conn.execute("INSERT INTO Contains(playlist_id, song_id) VALUES (%s, %s)", playlist_id, song_id)
+    g.conn.execute("INSERT INTO Contains(playlist_id, song_id) VALUES(%s, %s)", playlist_id, song_id)
 
     return {"Insertion": (song_id, playlist_id)}
 
@@ -185,10 +185,19 @@ def follow_artist():
     artist_id = req['artist_id']
     user_id = req['user_id']
 
-    g.conn.execute("INSERT INTO Follows(user_id, artist_id) VALUES (%s, %s)", user_id, artist_id)
+    g.conn.execute("INSERT INTO Follows(user_id, artist_id) VALUES(%s, %s)", user_id, artist_id)
 
     return {"Insertion": (artist_id, user_id)}
 
+@app.route('/follow_podcast', methods=['POST'])
+def follow_podcast():
+    req = request.get_json()
+    podcast_id = req['podcast_id']
+    user_id = req['user_id']
+
+    g.conn.execute("INSERT INTO Follows2(podcast_id, user_id) VALUES(%s, %s)", podcast_id, user_id)
+    
+    return {"Insertion": (podcast_id, user_id)}
 
 if __name__ == "__main__":
   import click
