@@ -153,6 +153,20 @@ def search_entities():
     
     return res
 
+@app.route('/create_playlist', methods=['GET'])
+def create_playlist():
+    req = request.get_json()
+    playlist_name = req['playlist_name']
+
+    db = g.conn.execute("SELECT MAX(P.playlist_id) \
+                         FROM Playlists P;")
+    
+    max_val = [int(i) for i in db]
+
+    g.conn.execute("INSERT INTO Playlists(playlist_id, playlist_name) VALUES (%s, %s)", str(max_val+1), playlist_name)
+
+    return str(max_val+1)
+
 if __name__ == "__main__":
   import click
 
