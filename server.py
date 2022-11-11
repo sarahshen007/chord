@@ -8,6 +8,9 @@ app = Flask(__name__)
 DATABASEURI = "postgresql://ss6170:6400@34.75.94.195/proj1part2"
 engine = create_engine(DATABASEURI)
 
+global q
+q = []
+
 @app.before_request
 def before_request():
   try:
@@ -212,6 +215,20 @@ def like_playlist():
 
     g.conn.execute("INSERT INTO Likes_playlist(playlist_id, user_id) VALUES(%s, %s)", playlist_id, user_id)
     return {"Insertion": (playlist_id, user_id)}
+
+@app.route('/enqueue_song', methods=['POST'])
+def enqueue_song():
+    req = request.get_json()
+    song_id = req['song_id']
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id \
+                         FROM Songs S \
+                         WHERE S.song_id = %s", song_id)
+    
+    for i in db:
+        q.append(tuple(i))
+    
+    return {"Insertion": song_id}
 
 if __name__ == "__main__":
   import click
