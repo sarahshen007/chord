@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script type="text/javascript" src="{{ url_for('static', filename = 'home.js') }}"></script>
+
+<div id = "home-container" class="col">
+    <div id = "welcome-section">
+        Welcome, {{user.username}}!
+    </div>
+    
+    <div id="recommendations">
+    </div>
+</div>
+
+{% endblock %}

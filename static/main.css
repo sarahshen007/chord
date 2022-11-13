@@ -1,0 +1,233 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond&family=Josefin+Sans&display=swap');
+
+
+:root {
+    --neutral: #171111;
+    --neutral-shadow: #0b0a0a;
+    --grey: #2b2b2b;
+    --text: #F6F3F3;
+    --accent: rgb(240, 5, 75);
+    --accent-low: rgba(240, 5, 75, 0.6);
+    --player: #1d1a1a;
+}
+
+/* OVERALL */
+body {
+    background-color: var(--neutral) !important;
+    color: var(--text) !important;
+    font-family: 'Josefin Sans', sans-serif !important;
+}
+
+html, body {
+    height: 100%;
+}
+
+a {
+    color: var(--accent) !important;
+}
+
+a:hover {
+    text-decoration: none;
+    color: var(--accent-low) !important;
+}
+
+textarea:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="month"]:focus,
+input[type="time"]:focus,
+input[type="week"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="color"]:focus,
+.uneditable-input:focus {   
+  border-color: var(--accent);
+  box-shadow: 0 1px 1px var(--accent) inset, 0 0 8px var(--accent-low);
+  outline: 0 none;
+}
+
+.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited, .btn-primary:focus {
+    background-color: var(--accent) !important;
+    border: var(--accent) 2px !important;
+    border-radius: 0px 5px 5px 0px !important;
+    outline: none !important;
+    box-shadow: none;
+ 
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-low) !important;
+}
+
+i {
+    color: var(--text) !important;
+}
+
+i:hover {
+    color: var(--accent) !important;
+}
+
+
+/* SIDEBAR */
+
+
+
+/* MUSIC PLAYER */
+.player {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    position: fixed;
+    bottom: 0;
+    min-width: 100vw;
+    background-color: var(--player);
+    color: var(--text);
+    border-radius: 5px 5px 0 0;
+    box-shadow: 10px 10px 5px var(--neutral-shadow);
+}
+
+.details {
+    margin: auto 5px;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: row;
+    width: 20%;
+}
+
+#album-art {
+    display: inline-block;
+    aspect-ratio: 1 / 1;
+    width: 60px; 
+    height: 60px; 
+    margin-right: 7px;
+}
+
+#song-name {
+    max-width: 100%;
+    font-size: larger;
+}
+
+#album-text-wrapper {
+    margin-right: 10px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#song-name, #artist-name {
+    white-space: nowrap;
+    width: 200px;
+    display: block;
+}
+
+#song-name {
+    animation: backAndForth 10s linear infinite;
+}
+
+
+@keyframes backAndForth {
+    0% {
+      transform: translateX(0);
+      left: 0;
+    }
+    10% {
+      transform: translateX(0);
+      left: 0;
+    }
+    45% {
+      transform: translateX(calc(-100%));
+      left: 100%;
+    }
+    55% {
+      transform: translateX(calc(-100%));
+      left: 100%;
+    }
+    90% {
+      transform: translateX(0);
+      left: 0;
+    }
+    100% {
+      transform: translateX(0);
+      left: 0;
+    }
+  }
+  
+
+
+.controls-container {
+    flex: 6 1 auto;
+}
+
+.song-slider{
+    width: 100%;
+    position: relative;
+}
+
+.seek-bar{
+    -webkit-appearance: none;
+    height: 5px;
+    width: 100%;
+    border-radius: 10px;
+    background: var(--grey);
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.seek-bar::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 1px;
+    height: 10px;
+    box-shadow: -400px 0 0 400px var(--accent);
+}
+
+.current-time,
+.song-duration{
+    font-size: 14px;
+}
+
+.song-duration{
+    position: absolute;
+    right: 0;
+}
+
+.controls > button {
+    padding: 0;
+}
+
+.controls{
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    font-size: 40px;
+    overflow: hidden;
+}
+
+
+
+
+/* LOGIN */
+#login-container {
+    margin-top: 40%;
+    text-align: center;
+}
+
+#login-text {
+    padding: 15px;
+}
+
+#login-input {
+    margin: auto;
+}
+
+#error-msg {
+    color: var(--accent);
+}
