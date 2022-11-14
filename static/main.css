@@ -75,7 +75,9 @@ i:hover {
 
 
 /* SIDEBAR */
-
+.sidebar {
+    padding: 0px;
+}
 
 
 /* MUSIC PLAYER */

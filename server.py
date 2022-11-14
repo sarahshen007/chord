@@ -11,7 +11,8 @@ engine = create_engine(DATABASEURI)
 global q
 global user
 q = []
-user = {"username": "", "user_id": ""}
+user = {}
+print(user)
 
 @app.before_request
 def before_request():
@@ -29,9 +30,10 @@ def before_request():
 # LOGIN PAGE / HOME
 @app.route('/')
 def home():
-    if user["username"] == "":
+    if len(user) == 0:
         return render_template('login.html')
-    return render_template('home.html', user=user, queue=q)
+    else:
+        return render_template('home.html', user=user, queue=q)
 
 
 ############
