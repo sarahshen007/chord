@@ -10,9 +10,9 @@ engine = create_engine(DATABASEURI)
 
 global q
 global user
+
 q = []
-user = {}
-print(user)
+user = {"username": "", "user_id": ""}
 
 @app.before_request
 def before_request():
@@ -30,18 +30,14 @@ def before_request():
 # LOGIN PAGE / HOME
 @app.route('/')
 def home():
-    if len(user) == 0:
+    if len(user["username"]) == 0:
         return render_template('login.html')
     else:
         return render_template('home.html', user=user, queue=q)
 
-
-############
-# DB INTERACTIONS
-############
-
 @app.route('/login', methods=['POST'])
 def login():
+    print("login attempt")
     global user
     username = request.get_json()
 
@@ -57,7 +53,20 @@ def login():
         
     return jsonify(user)
 
+@app.route('/signout', methods=['POST'])
+def signout():
+    print("signout attempt")
+    global user
+    
+    user = {"username": "", "user_id": ""}
 
+    return jsonify(user)
+
+
+
+############
+# DB INTERACTIONS
+############
 # GET ALL SONGS A USER HAS LIKED
 @app.route('/songs', methods=['GET'])
 def get_liked_songs():

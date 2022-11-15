@@ -69,7 +69,6 @@ function setMusic(i) {
 
     // set range slide value to 0;
     music.currentTime = 0;
-    seekBar.attr('value', 0);
     let song = queue[i];
 
     currentMusic = i;
@@ -86,7 +85,7 @@ function setMusic(i) {
     setTimeout(() => {
         seekBar.attr('max', music.duration);
         musicDuration.html(formatTime(music.duration));
-    }, 300);
+    }, 100);
 }
 
 
@@ -124,8 +123,37 @@ function btnPlay() {
     music.pause();
 }
 
+function signout() {
+    $.ajax({
+        type: "POST",
+        url: "/signout",                
+        dataType : "json",
+        cache: true,
+        contentType: "application/json",
+        success: function(result){
+            user = result
+            console.log(result);
+        },
+        error: function(request, status, error){
+            console.log("Error");
+            console.log(request);
+            console.log(status);
+            console.log(error);
+        },
+        complete: function(){
+            window.location.href='';
+        }
+    });
+}
+
 $(document).ready(function() {
     console.log(queue);
+
+    $("#home-btn").on('click', function() {
+        window.location.href="/"
+    });
+
+    $("#signout-btn").on('click', signout);
 
     if (queue.length == 0) {
         populateQueue();
@@ -147,17 +175,17 @@ $(document).ready(function() {
         }
     });
 
-    setInterval(() => {
-        console.log("Setting interval");
-
-        seekBar.attr('value', music.currentTime);
+    music.ontimeupdate = function () {
+        console.log("Time update");
+        seekBar.val(music.currentTime);
+        // seekBar.attr('value', music.currentTime);
         currentTime.html(formatTime(music.currentTime));
-        if(Math.floor(music.currentTime) == Math.floor(seekBar.attr('max'))){
+        if(Math.floor(music.currentTime) >= Math.floor(seekBar.attr('max'))){
             forwardBtn.click();
         }
-    }, 200);
+    }
 
-    seekBar.on("input",function(e){
+    seekBar.change(function(e){
         console.log("Seekbar change in input");
 
         music.currentTime = this.value;
