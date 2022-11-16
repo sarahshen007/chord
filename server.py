@@ -37,7 +37,6 @@ def home():
 
 @app.route('/login', methods=['POST'])
 def login():
-    print("login attempt")
     global user
     username = request.get_json()
 
@@ -55,37 +54,43 @@ def login():
 
 @app.route('/signout', methods=['POST'])
 def signout():
-    print("signout attempt")
     global user
     
     user = {"username": "", "user_id": ""}
 
     return jsonify(user)
 
+@app.route('/search_page')
+def viewSearch():
+    return render_template('search.html', user=user, queue=q)
 
-
-############
-# DB INTERACTIONS
-############
-# GET ALL SONGS A USER HAS LIKED
-@app.route('/songs', methods=['GET'])
-def get_liked_songs():
-    req = request.get_json()
-    uid = req['uid']
+@app.route('/my_songs')
+def viewMySongs():
     db = g.conn.execute("SELECT S.song_name, L.song_id, A.artist_name, B.artist_id \
                           FROM likes_song L, Songs S, by B, Artists A \
-                          WHERE L.user_id = %s AND S.song_id = L.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id;", uid)
+                          WHERE L.user_id = %s AND S.song_id = L.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id;", user['user_id'])
 
     songs = []
     for i in db:
         songs.append(tuple(i))
-    return {'songs': songs}
 
-# GET ALL PODCASTS A USER HAS LIKED
-@app.route('/podcasts', methods=['GET'])
-def get_followed_podcasts():
-    req = request.get_json()
-    uid = req['uid']
+    return render_template('songs.html', user=user, queue=q, songs=songs)
+
+@app.route('/my_artists')
+def viewMyArtists():
+    db = g.conn.execute("SELECT A.artist_name, F.artist_id \
+                          FROM Follows F, Artists A\
+                          WHERE F.user_id = %s and F.artist_id = A.artist_id", user['user_id'])
+
+    artists = []
+    for i in db:
+        artists.append(tuple(i))
+
+    return render_template('artists.html', user=user, queue=q, artists=artists)
+
+@app.route('/my_podcasts')
+def viewMyPodcasts():
+    uid = user['user_id']
     db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
                           FROM Podcasts P, follows2 F \
                           WHERE F.user_id = %s AND P.podcast_id = F.podcast_id;", uid)
@@ -93,14 +98,13 @@ def get_followed_podcasts():
     podcasts = []
     for i in db:
         podcasts.append(tuple(i))
-    return {'podcasts': podcasts}
 
+    return render_template('podcasts.html', user=user, queue=q, podcasts=podcasts)
 
 # GET ALL PLAYLISTS A USER MADE
-@app.route('/playlists', methods=['GET'])
-def get_created_playlists():
-    req = request.get_json()
-    uid = req['uid']
+@app.route('/my_playlists')
+def viewMyPlaylists():
+    uid = user['user_id']
     db = g.conn.execute("SELECT P.playlist_name, P.playlist_id \
                           FROM Playlists P, creates C \
                           WHERE C.user_id = %s AND P.playlist_id = C.playlist_id;", uid)
@@ -108,7 +112,22 @@ def get_created_playlists():
     playlists = []
     for i in db:
         playlists.append(tuple(i))
-    return {'playlists': playlists}
+    return render_template('playlists.html', user=user, queue=q, playlists=playlists)
+
+@app.route('/is_liked/<song_id>', methods=['POST'])
+def is_liked(song_id=None):
+
+    db = g.conn.execute("SELECT * \
+                        FROM likes_song L \
+                        WHERE L.song_id = %s AND L.user_id = %s", song_id, user["user_id"])
+
+
+    songs = []    
+    for i in db:
+        songs.append(tuple(i))
+    if len(songs) > 0:
+        return jsonify(True)
+    return jsonify(False)
 
 
 # GET SONG RECS BASED ON GENRE
@@ -126,9 +145,11 @@ def get_recommended_songs():
 
     max_g = [i for i in db]
 
-    db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id \
-                               FROM Songs S, Is_genre I, by B, Artists A \
-                               WHERE S.song_id = I.song_id AND I.genre_name = %s AND A.artist_id = B.artist_id AND B.song_id = S.song_id;", max_g[0][0])
+    db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
+                               FROM Songs S, Is_genre I, by B, Artists A, Albums D \
+                               WHERE S.song_id = I.song_id AND I.genre_name = %s \
+                                AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
+                                AND D.album_id = B.album_id;", max_g[0][0])
     
     rec_songs = []
     for i in db_songs:
@@ -198,10 +219,10 @@ def get_playlist_songs():
 
 
 # GET SEARCH RESULTS FOR Songs, Podcasts, Episodes, Users, Artists categories
-@app.route('/search', methods=['GET'])
+@app.route('/search', methods=['POST'])
 def search_entities():
     req = request.get_json()
-    query = req['query']
+    query = req
     entities = [("Songs", "song_name", "song_id"), ("Podcasts", "podcast_name", "podcast_id"), 
                 ("Episodes", "episode_name", "episode_id"), ("Playlists", "playlist_name", "playlist_id"), 
                 ("Users", "username", "user_id"), ("Albums", "album_name", "album_id"), 
@@ -272,14 +293,20 @@ def follow_podcast():
 
 
 # LIKE A SONG
-@app.route('/like_song', methods=['POST'])
-def like_song():
-    req = request.get_json()
-    song_id = req['song_id']
-    user_id = req['user_id']
+@app.route('/like_song/<song_id>', methods=['POST'])
+def like_song(song_id=None):
+    user_id = user['user_id']
 
     g.conn.execute("INSERT INTO Likes_song(song_id, user_id) VALUES(%s, %s)", song_id, user_id)
     return {"Insertion": (song_id, user_id)}
+
+# REMOVE A LIKE FROM A SONG
+@app.route('/dislike_song/<song_id>', methods=['POST'])
+def dislike_song(song_id=None):
+    user_id = user['user_id']
+
+    g.conn.execute("DELETE FROM Likes_song L WHERE L.song_id = %s AND L.user_id = %s)", song_id, user_id)
+    return {"Deletion": (song_id, user_id)}
 
 
 # LIKE A PLAYLIST

@@ -11,7 +11,7 @@ const musicDuration = $('.song-duration');
 const playBtn = $('.play-btn');
 const forwardBtn = $('.forward-btn');
 const backwardBtn = $('.back-btn');
-const playBtnIcon = $('#play-btn-icon')
+const playBtnIcon = $('#play-btn-icon');
 
 function populateQueue() {
     console.log("Populating queue");
@@ -45,33 +45,52 @@ function populateQueue() {
                     success: function(result){
                         console.log("Song successfully enqueued");
                         queue = result['Insertion'];
+                        setMusic(0);
                     },
                     error: function(request, status, error){
                         console.log("Error");
                         console.log(request)
                         console.log(status)
                         console.log(error)
-                    },
-                    complete: function() {
-                        console.log("New Queue:")
-                        console.log(queue);
-                        setMusic(0);
                     }
                 });
             }
+            
         }
     });
+    
 }
 
 
 function setMusic(i) {
     console.log("Setting music");
-
     // set range slide value to 0;
     music.currentTime = 0;
     let song = queue[i];
 
     currentMusic = i;
+
+    let isLiked = false;
+    console.log(queue[i][1])
+
+    $.ajax({
+        type: 'POST',
+        url: "/is_liked/"+queue[i][1],
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function(result){
+            isLiked=result
+            console.log("Is this song liked?")
+            console.log(result)
+            constructLikedButton($("#like-btn-icon"), isLiked, queue[i][1])
+        },
+        error: function(request, status, error){
+            console.log("Error");
+            console.log(request)
+            console.log(status)
+            console.log(error)
+        }
+    });
 
     songName.html(song[0]);
     artistName.html(song[2]);
@@ -86,6 +105,61 @@ function setMusic(i) {
         seekBar.attr('max', music.duration);
         musicDuration.html(formatTime(music.duration));
     }, 100);
+}
+
+
+function toggleLike(button) {
+    
+    if (button.attr('data-liked') == 'true') {
+        $.ajax({
+            type: 'POST',
+            url: "/dislike_song/"+button.data('song-id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                constructLikedButton(button, false, button.data('song-id'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: "/like_song/"+button.data('song-id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                constructLikedButton(button, true, button.data('song-id'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    }
+}
+
+function constructLikedButton(likedButton, isLiked, song_id) {
+    likedButton.attr('data-song-id', song_id)
+    likedButton.on('click', function() {
+        toggleLike(likedButton)
+    });
+    likedButton.attr('data-liked', isLiked)
+
+    if (isLiked) {
+        likedButton.removeClass("bi-heart")
+        likedButton.addClass("bi-heart-fill")
+    }
+    else {
+        likedButton.addClass("bi-heart")
+        likedButton.removeClass("bi-heart-fill")
+    }
 }
 
 
@@ -141,9 +215,33 @@ function signout() {
             console.log(error);
         },
         complete: function(){
-            window.location.href='';
+            window.location.href='/';
         }
     });
+}
+
+function goToProfile() {
+    window.location.href="/profile/" + user.user_id
+}
+
+function goToSearch() {
+    window.location.href="/search_page"
+}
+
+function goToSongs() {
+    window.location.href="/my_songs"
+}
+
+function goToArtists() {
+    window.location.href="/my_artists"
+}
+
+function goToPodcasts() {
+    window.location.href="/my_podcasts"
+}
+
+function goToPlaylists() {
+    window.location.href="/my_playlists"
 }
 
 $(document).ready(function() {
@@ -153,7 +251,19 @@ $(document).ready(function() {
         window.location.href="/"
     });
 
+    $("#profile-btn").on('click', goToProfile)
+
     $("#signout-btn").on('click', signout);
+
+    $("#search-btn").on('click', goToSearch);
+
+    $("#songs-btn").on('click', goToSongs);
+
+    $("#artists-btn").on('click', goToArtists);
+
+    $("#podcasts-btn").on('click', goToPodcasts);
+
+    $("#playlists-btn").on('click', goToPlaylists);
 
     if (queue.length == 0) {
         populateQueue();

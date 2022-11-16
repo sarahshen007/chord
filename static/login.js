@@ -1,5 +1,3 @@
-// 
-
 function login() {
     const username = $("#login-box").val();
     if (username.trim().length > 0) {

@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<script>
+    let podcasts = {{podcasts|tojson}}
+</script>
+<script type="module" src="{{ url_for('static', filename = 'liked_podcasts.js') }}"></script>
+
+<div id = "home-container">
+    <h2>My Podcasts</h2>    
+    <div id="liked-podcasts-container" class="section-card">
+        {% if podcasts %}
+            {% for podcast in podcasts %}
+                <div data-podcast-id = {{podcast[1]}}>{{podcast[0]}}</div>
+            {% endfor %}
+        {% else %}
+            <div>Nothing to see here...</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

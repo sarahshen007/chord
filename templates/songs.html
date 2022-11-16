@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let songs = {{songs|tojson}}
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'liked_songs.js') }}"></script>
+
+<div id = "home-container">
+    <h2>My Liked Songs</h2>    
+    <div id="liked-songs-container" class="section-card">
+        {% if songs %}
+            {% for song in songs %}
+                <div data-song-id = {{song[1]}}>{{song[0]}}</div>
+            {% endfor %}
+        {% else %}
+            <div>Nothing to see here...</div>
+        {% endif %}
+        
+    </div>
+</div>
+
+{% endblock %}

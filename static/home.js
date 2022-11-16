@@ -1,4 +1,5 @@
-import {Music} from "./music.js";
+import {SongCard} from "./music.js";
+import {Music} from "./music.js"
 
 let recommended = []
 
@@ -12,7 +13,10 @@ function populateForYou() {
         data : JSON.stringify(user),
         success: function(result){
             for (let i = 0; i < result['recommended_songs'].length; i++) {
-                recommended.push(result['recommended_songs'][i]);
+                const recommended_songs = result['recommended_songs']
+                const musicObj = new Music(recommended_songs[i][0], recommended_songs[i][1], recommended_songs[i][2], recommended_songs[i][3], recommended_songs[i][4], recommended_songs[i][5])
+                const song = new SongCard(musicObj);
+                recommended.push(song);
             }
         },
         error: function(request, status, error){
@@ -23,14 +27,21 @@ function populateForYou() {
         },
         complete: function(){
             for (let i = 0; i < recommended.length; i++) {
-                const song = new Music('song', recommended[i][0], recommended[i][1], recommended[i][2], recommended[i][3]);
-                song.createMusicCard($("#recommendations"));
+                let song = recommended[i]
+                let musicCard, playButton = song.createSongCard($("#recommendations"));
+
+                $(musicCard).data(song.album_id);
+                $(playButton).data(song.song_id);
+
+                console.log($(musicCard).data());
+
             }
         }
     });
 }
 
-$(document).ready(function (){
+$(document).ready(function (){    
+
     populateForYou();
 });
 

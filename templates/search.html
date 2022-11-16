@@ -5,15 +5,20 @@
 <script type="module" src="{{ url_for('static', filename = 'search.js') }}"></script>
 
 <div id = "home-container">
-    <div id = "welcome-section" class="section-card">
-        <h1>Welcome, {{user.username}}!</h1>
+    <div id="search">
+        <input id="search-bar" type="text" placeholder="Search..">
     </div>
     
-    <div id="recommendations-container" class="section-card">
-        <h2><i class="bi bi-compass"></i> For you</h2>
-        <div id="recommendations" class="card-container">
-            <!-- dynamic population -->
-        </div>
+    <h2>Search Results</h2>
+    <div id="search-results">
+        <!-- <div class="section-card">
+            <button class="search-results-btn btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#songs-results" aria-expanded="false">
+                <h3>Songs</h3>
+            </button>
+            <div id="songs-results" class="collapse">
+                
+            </div>     
+        </div> -->
     </div>
 </div>
 

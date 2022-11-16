@@ -4,7 +4,7 @@
 :root {
     --neutral: #171111;
     --neutral-shadow: #0b0a0a;
-    --light-grey: #383838;
+    --light-grey: rgb(56, 56, 56);
     --grey: #2b2b2b;
     --text: rgb(246, 243, 243);
     --text-low: rgba(246, 243, 243, 0.7);
@@ -13,6 +13,7 @@
     --accent-light: rgb(250, 1, 76);
     --accent-dark: rgb(192, 0, 58);
     --player: #1d1a1a;
+    --transparent-grey: rgba(56, 56, 56, 0.8);
 }
 
 /* OVERALL */
@@ -134,6 +135,7 @@ input[type="color"]:focus,
 }
 
 .nav-link {
+    cursor: pointer;
     color: var(--text-low) !important;
     text-decoration: none;
 }
@@ -148,6 +150,15 @@ input[type="color"]:focus,
 }
 
 /* MUSIC PLAYER */
+#like-btn {
+    font-size: 30px;
+    color: white;
+}
+
+#like-btn:hover {
+    color: var(--accent);
+}
+
 .player {
     z-index: 2;
     display: inline-flex;
@@ -422,8 +433,6 @@ input[type="color"]:focus,
     text-overflow: ellipsis;
 }
 
-
-
 /* HOME */
 .wrapper {
     max-height: calc(100% - 100px);
@@ -440,9 +449,17 @@ input[type="color"]:focus,
 }
 
 /* LOGIN */
+.login-wrapper {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 #login-container {
-    margin-top: 40%;
     text-align: center;
+    margin: auto;
 }
 
 #login-text {
@@ -451,8 +468,52 @@ input[type="color"]:focus,
 
 #login-input {
     margin: auto;
+    min-width: 300px;
 }
 
 #error-msg {
     color: var(--accent);
+}
+
+
+/* SEARCH PAGE */
+#search {
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+}
+
+#search-bar {
+    color: var(--text);
+    border: none;
+    width: 100%;
+    background-color: var(--transparent-grey);
+    border-radius: 5px;
+    padding: 2px 15px 2px 15px;
+    transition-property: box-shadow;
+    transition-duration: 100ms;
+    transition-timing-function: ease-in-out;
+}
+
+#search-bar:focus {
+    box-shadow: 0px 2px 0 var(--accent);
+}
+
+.search-results-btn {
+    width: 100%;
+    text-align: left;
+}
+
+.results-div {
+    padding-left: 20px;
+}
+
+/* PROFILES */
+
+#profile-pic {
+    border-radius: 100%;
+    width: 100px;
+    height: 100px;
 }

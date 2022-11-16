@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let user_id = user_id
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'profile.js') }}"></script>
+
+<div id = "home-container">
+    <div id = "user_details" class="section-card">
+        <div id="profile-pic"></div>
+    </div>
+    
+    <div id="playlists-container" class="section-card">
+    </div>
+</div>
+
+{% endblock %}

@@ -38,8 +38,8 @@
                 </button>
                 <div class="collapse" id="account-collapse">
                   <ul class="btn-toggle-nav">
-                    <li class="nav-li"><a href="#" class="nav-link rounded">Profile</a></li>
-                    <li id="signout-btn" class="nav-li"><a href="#" class="nav-link rounded">Sign out</a></li>
+                    <li id="profile-btn" class="nav-li"><a class="nav-link rounded">Profile</a></li>
+                    <li id="signout-btn" class="nav-li"><a class="nav-link rounded">Sign out</a></li>
                   </ul>
                 </div>
               </li>
@@ -49,7 +49,7 @@
                 </button>
               </li>
               <li class="nav-li">
-                <button class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
+                <button id="search-btn" class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
                   <span><i class="bi bi-search"></i> Search</span>
                 </button>
               </li>
@@ -59,10 +59,10 @@
                 </button>
                 <div class="collapse" id="dashboard-collapse">
                   <ul class="btn-toggle-nav">
-                    <li class="nav-li"><a href="#" class="nav-link rounded">My songs</a></li>
-                    <li class="nav-li"><a href="#" class="nav-link rounded">My artists</a></li>
-                    <li class="nav-li"><a href="#" class="nav-link rounded">My podcasts</a></li>
-                    <li class="nav-li"><a href="#" class="nav-link rounded">My playlists</a></li>
+                    <li id="songs-btn" class="nav-li"><a class="nav-link rounded">My songs</a></li>
+                    <li id="artists-btn" class="nav-li"><a class="nav-link rounded">My artists</a></li>
+                    <li id="podcasts-btn" class="nav-li"><a class="nav-link rounded">My podcasts</a></li>
+                    <li id="playlists-btn" class="nav-li"><a class="nav-link rounded">My playlists</a></li>
                   </ul>
                 </div>
               </li>                          
@@ -91,6 +91,9 @@
       </div>
 
       <div class="player">
+          <button class="btn" id="like-btn">
+            <i id="like-btn-icon" class="bi bi-heart"></i>
+          </button>
           <div class="details">
               <div id="album-art">
               </div>
@@ -130,5 +133,5 @@
         var queue = {{queue|tojson}};
     </script>
 
-    <script type="text/javascript" src="{{ url_for('static', filename = 'layout.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename = 'layout.js') }}"></script>
 </html>
