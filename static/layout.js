@@ -35,9 +35,11 @@ export function createMusicCard(container, names, id, type='') {
 
     musicCard.attr('data-id', id);
     musicCard.attr('data-type', type);
+    musicCard.attr('data-name', names[0])
     musicCard.addClass('clickable');
 
     musicCard.on('click', function() {
+        event.stopPropagation();
         goToPage(musicCard)
     })
 
@@ -74,7 +76,7 @@ export function createMusicCard(container, names, id, type='') {
     container.append(musicCard);
 }
 
-export function createMusicListCard(container, names, id, type='') {
+export function createMusicListCard(container, names, id, type='', add_btn=0, index=-1) {
     let musicCard = $('<div class="music-card-list"></div>');
     let musicArt = $('<div class="music-art-list"></div>').css("background-color", getRandomColor());
     let musicName = $('<div class="music-name-list"></div>').html(names[0]);
@@ -82,9 +84,12 @@ export function createMusicListCard(container, names, id, type='') {
 
     musicCard.attr('data-id', id);
     musicCard.attr('data-type', type);
+    musicCard.attr('data-name', names[0])
+    musicCard.attr('data-index', index)
     musicCard.addClass('clickable');
 
     musicCard.on('click', function() {
+        event.stopPropagation()
         goToPage(musicCard)
     })
 
@@ -118,7 +123,34 @@ export function createMusicListCard(container, names, id, type='') {
     musicCard.append(musicName);
     musicCard.append(musicCreator);
 
-    container.append(musicCard);
+    const wrapper = $('<div class="addable-wrapper"></div>')
+    if (add_btn == 1) {
+        
+        const button = $('<button class="btn pedit-btn add-btn">+</button>')
+        button.attr('data-id', id);
+        button.attr('data-type', type);
+        button.attr('data-name', names[0])
+        button.attr('data-index', index)
+        button.attr('data-creator', names[1])
+
+        wrapper.append(button)
+        wrapper.append(musicCard)
+        container.append(wrapper)
+    } else if (add_btn == -1) {
+        const button = $('<button class="btn pedit-btn del-btn">-</button>')
+        button.attr('data-id', id);
+        button.attr('data-type', type);
+        button.attr('data-name', names[0])
+        button.attr('data-index', index)
+        button.attr('data-creator', names[1])
+
+        wrapper.append(button)
+        wrapper.append(musicCard)
+        container.append(wrapper)
+    } 
+    else {
+        container.append(musicCard);
+    }
 }
 
 export function createPlaylistItem(container, name, id) {
@@ -208,6 +240,101 @@ export function constructFollowButton(followButton, isFollowing, id, type) {
     }
 }
 
+export function populateCardContainer(container, iterable, type) {
+    for (let i = 0; i < iterable.length; i++) {
+        const item = iterable[i]
+        
+        createMusicCard($(container), [item[0], item[2]], item[1], type)
+    }
+}
+
+export function populateListCardContainer(container, iterable, type, add_btn = 0) {
+    container.empty()
+    for (let i = 0; i < iterable.length; i++) {
+        const item = iterable[i]
+        
+        createMusicListCard($(container), [item[0], item[2]], item[1], type, add_btn, i)
+    }
+}
+
+export function toggleLike(button) {
+    
+    if (button.attr('data-liked') == '1') {
+        $.ajax({
+            type: 'POST',
+            url: "/dislike_" + button.data('type') + "/"+button.data('id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                console.log(result)
+                constructLikedButton(button, 0, button.data('id'), button.data('type'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: "/like_" + button.data('type') + "/"+button.data('id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                console.log(result)
+                constructLikedButton(button, 1, button.data('id'), button.data('type'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    }
+}
+
+export function constructLikedButton(likedButton, isLiked, id, type) {
+    likedButton.attr('data-id', id)
+    likedButton.attr('data-type', type)
+    likedButton.attr('data-liked', isLiked)
+
+    likedButton.off();
+    likedButton.on('click', function() {
+        event.stopPropagation()
+        toggleLike(likedButton);
+    })
+
+    if (isLiked) {
+        likedButton.removeClass("bi-heart")
+        likedButton.addClass("bi-heart-fill")
+    }
+    else {
+        likedButton.addClass("bi-heart")
+        likedButton.removeClass("bi-heart-fill")
+    }
+}
+
+export function setLikedButton(button, id, type) {
+    $.ajax({
+        type: 'POST',
+        url: "/is_liked_" + type + "/" + id,
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function(result){
+            constructLikedButton(button, result, id, type)
+        },
+        error: function(request, status, error){
+            console.log("Error");
+            console.log(request)
+            console.log(status)
+            console.log(error)
+        }
+    });
+}
+
 /* PLAYER JS*/
 const music = document.querySelector('#audio');
 
@@ -243,7 +370,7 @@ function setMusic(i) {
     q_num = i;
     set_q_num(i);
 
-    setLikedButton(queue[i][1]);
+    setLikedButton($("#like-btn-icon"), queue[i][1], 'song');
 
     songName.html(song[0]);
 
@@ -276,86 +403,6 @@ function btnPlay() {
     music.pause();
 }
 
-
-/* LIKED */
-
-function setLikedButton(song_id) {
-    $.ajax({
-        type: 'POST',
-        url: "/is_liked/"+song_id,
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        success: function(result){
-            constructLikedButton($("#like-btn-icon"), result, song_id)
-        },
-        error: function(request, status, error){
-            console.log("Error");
-            console.log(request)
-            console.log(status)
-            console.log(error)
-        }
-    });
-}
-
-function toggleLike(button) {
-    
-    if (button.attr('data-liked') == '1') {
-        $.ajax({
-            type: 'POST',
-            url: "/dislike_song/"+button.data('song-id'),
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(result){
-                console.log(result)
-                constructLikedButton(button, 0, button.data('song-id'))
-            },
-            error: function(request, status, error){
-                console.log("Error");
-                console.log(request)
-                console.log(status)
-                console.log(error)
-            }
-        });
-    } else {
-        $.ajax({
-            type: 'POST',
-            url: "/like_song/"+button.data('song-id'),
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            success: function(result){
-                console.log(result)
-                constructLikedButton(button, 1, button.data('song-id'))
-            },
-            error: function(request, status, error){
-                console.log("Error");
-                console.log(request)
-                console.log(status)
-                console.log(error)
-            }
-        });
-    }
-}
-
-function constructLikedButton(likedButton, isLiked, song_id) {
-    likedButton.attr('data-song-id', song_id)
-    likedButton.attr('data-liked', isLiked)
-
-    likedButton.off();
-    likedButton.on('click', function() {
-        event.stopPropagation()
-        toggleLike(likedButton);
-    })
-
-    if (isLiked) {
-        likedButton.removeClass("bi-heart")
-        likedButton.addClass("bi-heart-fill")
-    }
-    else {
-        likedButton.addClass("bi-heart")
-        likedButton.removeClass("bi-heart-fill")
-    }
-}
-
 /* SIDEBAR FUNCTIONS */
 function signout() {
     $.ajax({
@@ -385,7 +432,7 @@ function goToHome() {
 }
 
 function goToProfile() {
-    window.location.href="/profile/" + user.user_id
+    window.location.href="/user/" + user.user_id
 }
 
 function goToSearch() {
@@ -406,6 +453,10 @@ function goToPodcasts() {
 
 function goToPlaylists() {
     window.location.href="/my_playlists"
+}
+
+export function goToEditPlaylist(pid) {
+    window.location.href = '/edit_playlist/' + pid
 }
 
 function populateSideBarPlaylists() {
@@ -443,6 +494,9 @@ $(document).ready(function() {
     $("#artists-btn").on('click', goToArtists);
     $("#podcasts-btn").on('click', goToPodcasts);
     $("#playlists-btn").on('click', goToPlaylists);
+    $("#new-playlist-btn").on('click', function() {
+        goToEditPlaylist("new")
+    });
 
     // POPULATE SIDEBAR PLAYLISTS
     populateSideBarPlaylists();

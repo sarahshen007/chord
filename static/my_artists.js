@@ -2,9 +2,10 @@ import {goToPage} from "./layout.js"
 import {populateCardContainer} from "./layout.js"
 
 $(document).ready(function() {
-    populateCardContainer($("#playlists-container"), playlists, 'playlist')
-    populateCardContainer($("#liked-playlists-container"), liked_playlists, 'playlist')
+    populateCardContainer($("#liked-artists-container"), artists, 'artist')
+})
 
+$(document).ready(function() {
     $(".clickable").on('click', function() {
         goToPage(this)
     });

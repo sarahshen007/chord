@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<script>
+    let podcasts = {{podcasts|tojson}}
+</script>
+<script type="module" src="{{ url_for('static', filename = 'my_podcasts.js') }}"></script>
+
+<div id = "home-container">
+    <h2>My Podcasts</h2>    
+    <div id="liked-podcasts-container" class="section-card card-container">
+        {% if podcasts|length == 0 %}
+            <div>Nothing to see here...</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

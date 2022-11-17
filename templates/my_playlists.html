@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let playlists = {{playlists|tojson}}
+    let liked_playlists = {{liked_playlists|tojson}}
+</script>
+<script type="module" src="{{ url_for('static', filename = 'my_playlists.js') }}"></script>
+
+<div id = "home-container">
+    <h2>My Playlists</h2>    
+    <div id="playlists-container" class="section-card card-container">
+        {% if playlists|length == 0 %}
+            <div>Nothing to see here...</div>
+        {% endif %}
+    </div>
+    <br>
+    <h2>Playlists I Like</h2>
+    <div id="liked-playlists-container" class="section-card card-container">
+        {% if liked_playlists|length == 0 %}
+            <div>Nothing to see here...</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

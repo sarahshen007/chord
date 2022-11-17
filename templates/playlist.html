@@ -14,10 +14,18 @@
         </div>
         <div id="album-info" class="card-info">
             <div id="album-name" class="card-name">{{playlist.Info[0][0]}}</div>
-            <div id="album-artist" data-id={{playlist.Info[0][3]}} data-type='artist' class="card-extra clickable">{{ playlist.Info[0][2]}}</div>
-        </div>
-        <div id="edit-btn">
-            <i class="bi bi-pencil"></i>
+            <div id="album-artist" data-id={{playlist.Info[0][3]}} data-type='user' class="card-extra clickable">{{ playlist.Info[0][2]}}</div>
+            <div class="buttons-wrapper">
+                <button class="btn like-btn" id="like-btn-playlist">
+                    <i id="like-btn-icon-playlist" class="bi bi-heart like-btn-icon" data-type="playlist" data-id={{playlist.Info[0][1]}}></i>
+                </button>
+
+                {% if playlist.Info[0][3] == user.user_id %}
+                <button class="btn edit-btn" id="edit-btn-playlist">
+                    <i id="edit-btn-icon-playlist" class="bi bi-pencil edit-btn-icon"></i>
+                </button>
+                {% endif %}
+            </div>
         </div>
     </div>
     

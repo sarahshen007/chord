@@ -1,5 +1,3 @@
-import {getRandomColor} from "./layout.js"
-import {createMusicCard} from "./layout.js"
 import {createMusicListCard} from "./layout.js"
 import {goToPage} from "./layout.js"
 
@@ -28,8 +26,6 @@ function getSearchResults(query) {
     }
 }
 
-
-
 function populateResults(results) {
     $("#search-results").empty();
 
@@ -47,8 +43,6 @@ function populateResults(results) {
 
             wrapper.append(button)
             wrapper.append(results_div)
-
-            console.log(results[key])
 
             for (var result in results[key]) {
                 const type = key.substring(0, key.length - 1).toLowerCase();

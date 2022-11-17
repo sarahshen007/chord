@@ -33,6 +33,11 @@
                     
             <ul class="sidebar-nav">
               <li class="nav-li">
+                <button id="home-btn" class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
+                  <span><i class="bi bi-house"></i> Home</span>
+                </button>
+              </li>
+              <li class="nav-li">
                 <button class="btn btn-toggle align-items-center rounded collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
                   <span><i class="bi bi-person-circle"></i> Account</span>
                 </button>
@@ -42,11 +47,6 @@
                     <li id="signout-btn" class="nav-li"><a class="nav-link rounded">Sign out</a></li>
                   </ul>
                 </div>
-              </li>
-              <li class="nav-li">
-                <button id="home-btn" class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
-                  <span><i class="bi bi-house"></i> Home</span>
-                </button>
               </li>
               <li class="nav-li">
                 <button id="search-btn" class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
@@ -71,7 +71,7 @@
                   
           <div class="sidebar-playlist-container">
             <ul class="sidebar-nav">
-              <li class="nav-li">
+              <li id="new-playlist-btn" class="nav-li">
                 <button class="btn btn-toggle collapsed nav-btn" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
                   <span><i class="bi bi-plus-square"></i> New Playlist</span>
                 </button>
@@ -91,8 +91,8 @@
       </div>
 
       <div class="player">
-          <button class="btn" id="like-btn">
-            <i id="like-btn-icon" class="bi bi-heart"></i>
+          <button class="btn like-btn" id="like-btn">
+            <i id="like-btn-icon" class="bi bi-heart like-btn-icon"></i>
           </button>
           <div class="details">
               <div id="album-art" class="clickable">

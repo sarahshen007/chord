@@ -1,24 +1,23 @@
 import {getRandomColor} from "./layout.js"
-import {createMusicListCard} from "./layout.js"
+import { populateListCardContainer } from "./layout.js"
 import {goToPage} from "./layout.js"
-
-function populateSongsContainer() {
-    for (let i = 0; i < playlist.Songs.length; i++) {
-        const song = playlist.Songs[i]
-        console.log('song in album: ', song)
-
-        createMusicListCard($("#songs-container"), [song[0], song[2]], song[1], 'song')
-    }
-}
+import {setLikedButton} from "./layout.js"
 
 $(document).ready(function() {
     $('#album-pic').css('background-color', getRandomColor())
 })
 
+const playlistLikeButton = $("#like-btn-icon-playlist")
+
 $(document).ready(function() {
-    populateSongsContainer();
+    populateListCardContainer($("#songs-container"), playlist.Songs, 'song')
+    setLikedButton(playlistLikeButton, playlistLikeButton.data('id'), playlistLikeButton.data('type'));
 
     $(".clickable").on('click', function() {
         goToPage(this)
     });
+
+    $("#edit-btn-playlist").on('click', function() {
+        window.location.href='/edit_playlist/' + playlist.Info[0][1]
+    })
 })

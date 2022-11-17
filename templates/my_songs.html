@@ -6,15 +6,20 @@
     let songs = {{songs|tojson}}
 </script>
 
-<script type="module" src="{{ url_for('static', filename = 'liked_songs.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename = 'my_songs.js') }}"></script>
 
 <div id = "home-container">
     <h2>My Liked Songs</h2>    
+    {% if songs|length == 0 %}
+    <div class="section-card">Nothing to see here...</div>
+
+    {% else %}
     <div id="liked-songs-container" class="section-card">
-        {% if songs|length == 0 %}
-            <div>Nothing to see here...</div>
-        {% endif %}
+        
     </div>
+
+    {% endif %}
+
 </div>
 
 {% endblock %}

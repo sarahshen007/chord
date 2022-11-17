@@ -3,7 +3,7 @@ function login() {
     if (username.trim().length > 0) {
         $.ajax({
             type: "POST",
-            url: "/login",                
+            url: "/signup_post",                
             dataType : "json",
             contentType: "application/json; charset=utf-8",
             data : JSON.stringify(username),
@@ -36,6 +36,4 @@ $(document).ready(function() {
             login();
         }
     });
-
-    
 })

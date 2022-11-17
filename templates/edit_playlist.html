@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let playlist = {{playlist|tojson}}
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'edit_playlist.js') }}"></script>
+
+<div id = "home-container">
+    <div id = "album-details" class="section-card card-details">
+        <div id="album-pic" class="card-art">
+        </div>
+        <div id="album-info" class="card-info">
+            <div id="album-name" class="card-name"><input type="text" class="form-control edit-text-input" id="playlist-name" placeholder="Enter name here..."></div>
+            <div id="album-artist" data-id={{user.user_id}} data-type='user' class="card-extra clickable">{{user.username}}</div>
+            <button class="btn btn-light" id="done-btn">Done</button>
+            <button class="btn btn-warning" id="del-btn">Delete</button>
+        </div>
+    </div>
+    
+    <div id="songs-container" class="section-card">
+    </div>
+</div>
+
+<br>
+<div class="section-card">
+    <div>Looking for a song?</div>
+    <input id="search-bar" type="text" placeholder="Search for songs..">
+</div>
+
+<div id="search-results">
+</div>
+
+{% endblock %}

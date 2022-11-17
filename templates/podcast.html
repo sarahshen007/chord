@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let podcast = {{podcast|tojson}}
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'podcast.js') }}"></script>
+
+<div id = "home-container">
+    <div id ="profile-details" class="section-card card-details">
+        <div id="profile-pic" class="card-art">
+
+        </div>
+        <div id="profile-info" class="card-info">
+            <div id="profile-name" class="card-name">{{podcast.Info[0][0]}}</div>
+            <button data-id={{podcast.Info[0][1]}} data-type='podcast' id="follow-btn" class="btn btn-light">
+            </button>
+        </div>
+        
+    </div>
+    
+    <div id="albums-container" class="section-card">
+        <h3 class="card-container-title">Episodes</h3>
+    </div>
+</div>
+
+{% endblock %}
