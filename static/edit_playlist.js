@@ -80,14 +80,14 @@ function delPlaylist() {
     if (playlist.Info.length == 0) {
         return
     } else {
-        pid = playlist.Info[1]
+        pid = playlist.Info[0][1]
 
         $.ajax({
             type: "POST",
             url: "/del_playlist",                
             dataType : "json",
-            contentType: "application/json",
-            data : JSON.stringify(newPlaylist),
+            contentType: "application/json; charset=utf-8",
+            data : JSON.stringify(pid),
             success: function(result){
                 console.log(result)
                 window.location.href = result['url']

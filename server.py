@@ -45,6 +45,8 @@ def home():
 
 @app.route("/signup")
 def signup():
+    if len(user['user_id']) == 0:
+        return home()
     return render_template('signup.html')
     
 @app.route("/signup_post", methods=['POST'])
@@ -785,6 +787,9 @@ def newPlaylist():
 def delPlaylist():
     pid = request.get_json()
 
+    g.conn.execute("DELETE FROM Creates C WHERE C.playlist_id = %s;", pid)
+    g.conn.execute("DELETE FROM Likes_playlist L WHERE L.playlist_id = %s", pid)
+    g.conn.execute("DELETE FROM Contains C WHERE C.playlist_id = %s", pid)
     g.conn.execute("DELETE FROM Playlists P WHERE P.playlist_id = %s;", pid)
 
     return {'url': '/'}
