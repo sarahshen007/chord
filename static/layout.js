@@ -1,5 +1,214 @@
+/* GENERAL */
+
+export function goToPage(clickedItem) {
+    const type = $(clickedItem).data('type')
+    const id = $(clickedItem).data('id')
+
+    window.location.href = '/'+type+'/'+id
+}
+
+export function getRandomColor() {
+    var colorR = Math.floor((Math.random() * 256));
+    var colorG = Math.floor((Math.random() * 256));
+    var colorB = Math.floor((Math.random() * 256));
+
+    return "rgb(" + colorR + "," + colorG + "," + colorB + ")"
+}
+
+export function formatTime (time) {
+    let min = Math.floor(time / 60);
+    if(min < 10){
+        min = `0${min}`;
+    }
+    let sec = Math.floor(time % 60);
+    if(sec < 10){
+        sec = `0${sec}`;
+    }
+    return `${min} : ${sec}`;
+}
+
+export function createMusicCard(container, names, id, type='') {
+    let musicCard = $('<div class="music-card"></div>');
+    let musicArt = $('<div class="music-art"></div>').css("background-color", getRandomColor());
+    let musicName = $('<div class="music-name"></div>').html(names[0]);
+    let musicCreator = $('<div class="music-creator"></div>').html(names[1]);
+
+    musicCard.attr('data-id', id);
+    musicCard.attr('data-type', type);
+    musicCard.addClass('clickable');
+
+    musicCard.on('click', function() {
+        goToPage(musicCard)
+    })
+
+    if (type == 'song' || type == 'album' || type == 'playlist') {
+        let playButton = $('<div class="play-btn-2"><div class="play-btn-icon-2">▷</div></div>');
+        musicArt.append(playButton);
+        playButton.attr('data-id', id);
+
+        playButton.on('click', function() {
+            $.ajax({
+                type: "POST",
+                url: "/enqueue_" + type + "/" + playButton.attr('data-id'),
+                dataType : "json",
+                cache: true,
+                contentType: "application/json",
+                success: function(result) {
+                    console.log(result);
+                    queue = result['Insertion']
+                    q_num = result['Num']
+                    setMusic(q_num)
+                    btnPause()
+                }
+            })
+            event.stopPropagation()
+        })
+    } else if (type == 'artist') {
+        musicArt.addClass('profile-pic')
+    }
+
+    musicCard.append(musicArt);
+    musicCard.append(musicName);
+    musicCard.append(musicCreator);
+
+    container.append(musicCard);
+}
+
+export function createMusicListCard(container, names, id, type='') {
+    let musicCard = $('<div class="music-card-list"></div>');
+    let musicArt = $('<div class="music-art-list"></div>').css("background-color", getRandomColor());
+    let musicName = $('<div class="music-name-list"></div>').html(names[0]);
+    let musicCreator = $('<div class="music-creator-list"></div>').html(names[1]);
+
+    musicCard.attr('data-id', id);
+    musicCard.attr('data-type', type);
+    musicCard.addClass('clickable');
+
+    musicCard.on('click', function() {
+        goToPage(musicCard)
+    })
+
+    if (type == 'song' || type == 'album' || type == 'playlist') {
+        let playButton = $('<div class="play-btn-2-list"><div class="play-btn-icon-2"><i class="bi bi-play"></i></div></div>');
+        musicArt.append(playButton);
+        playButton.attr('data-id', id);
+
+        playButton.on('click', function() {
+            $.ajax({
+                type: "POST",
+                url: "/enqueue_" + type + "/" + playButton.attr('data-id'),
+                dataType : "json",
+                cache: true,
+                contentType: "application/json",
+                success: function(result) {
+                    console.log(result);
+                    queue = result['Insertion']
+                    q_num = result['Num']
+                    setMusic(q_num)
+                    btnPause();
+                }
+            })
+            event.stopPropagation()
+        })
+    } else if (type == 'artist') {
+        musicArt.addClass('profile-pic')
+    }
+
+    musicCard.append(musicArt);
+    musicCard.append(musicName);
+    musicCard.append(musicCreator);
+
+    container.append(musicCard);
+}
+
+export function createPlaylistItem(container, name, id) {
+    let playlistName = $('<div class="sidebar-playlist-name"></div>').html(name);
+    playlistName.attr('data-id', id)
+    playlistName.attr('data-type', 'playlist')
+    playlistName.addClass('clickable')
+
+    playlistName.on('click', function() {
+        goToPage(this)
+    })
+
+    container.append(playlistName);
+}
+
+export function toggleFollowing(button) {
+    
+    if (button.attr('data-following') == '1') {
+        $.ajax({
+            type: 'POST',
+            url: "/unfollow_"+button.data('type')+"/" + button.data('id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                console.log(result)
+                constructFollowButton(button, 0, button.data('id'), button.data('type'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: "/follow_"+button.data('type')+'/'+button.data('id'),
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            success: function(result){
+                console.log(result)
+                constructFollowButton(button, 1, button.data('id'), button.data('type'))
+            },
+            error: function(request, status, error){
+                console.log("Error");
+                console.log(request)
+                console.log(status)
+                console.log(error)
+            }
+        });
+    }
+}
+
+export function isFollowing(id, type) {
+    let following = 0
+    $.ajax({
+        type: "GET",
+        url: "/follows_" + type + "/" + id,
+        dataType : "json",
+        cache: true,
+        async: false,
+        contentType: "application/json",
+        success: function(result) {
+            console.log(result);
+            following= result
+        }
+    })
+    return following
+}
+
+export function constructFollowButton(followButton, isFollowing, id, type) {
+    followButton.attr('data-id', id)
+    followButton.attr('data-following', isFollowing)
+    followButton.attr('data-type', type)
+
+    followButton.off();
+    followButton.on('click', function() {
+        toggleFollowing(followButton);
+    })
+
+    if (isFollowing) {
+        followButton.html("Following")
+    }
+    else {
+        followButton.html("Follow")
+    }
+}
+
 /* PLAYER JS*/
-let currentMusic = 0;
 const music = document.querySelector('#audio');
 
 const seekBar = $('.seek-bar');
@@ -13,76 +222,71 @@ const forwardBtn = $('.forward-btn');
 const backwardBtn = $('.back-btn');
 const playBtnIcon = $('#play-btn-icon');
 
-function populateQueue() {
-    console.log("Populating queue");
-    let new_songs = []
+function set_q_num(i) {
     $.ajax({
-        type: "POST",
-        url: "/song_recommendations",                
-        dataType : "json",
-        cache: true,
-        contentType: "application/json",
-        data : JSON.stringify(user),
-        success: function(result){
-            for (let i = 0; i < result['recommended_songs'].length; i++) {
-                new_songs.push(result['recommended_songs'][i]);
-            }
-        },
-        error: function(request, status, error){
-            console.log("Error");
-            console.log(request)
-            console.log(status)
-            console.log(error)
-        },
-        complete: function(){
-            for (let i = 0; i < new_songs.length; i++) {
-                $.ajax({
-                    type: "POST",
-                    url:"/enqueue_song",
-                    dataType: "json",
-                    contentType: "application/json",
-                    data: JSON.stringify(new_songs[i][1]),
-                    success: function(result){
-                        console.log("Song successfully enqueued");
-                        queue = result['Insertion'];
-                        setMusic(0);
-                    },
-                    error: function(request, status, error){
-                        console.log("Error");
-                        console.log(request)
-                        console.log(status)
-                        console.log(error)
-                    }
-                });
-            }
-            
+        type: 'POST',
+        url: "/set_q_num",
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify(q_num),
+        success: function(result) {
+            console.log(result);
         }
     });
-    
 }
 
-
 function setMusic(i) {
-    console.log("Setting music");
-    // set range slide value to 0;
+    console.log("Setting song to", queue[i]);
     music.currentTime = 0;
     let song = queue[i];
 
-    currentMusic = i;
+    q_num = i;
+    set_q_num(i);
 
-    let isLiked = false;
-    console.log(queue[i][1])
+    setLikedButton(queue[i][1]);
 
+    songName.html(song[0]);
+
+    artistName.html(song[2]);
+    artistName.attr('data-id', queue[i][3])
+    artistName.attr('data-type', 'artist')
+
+    $(albumArt).css("background-color", getRandomColor());
+    albumArt.attr('data-id', queue[i][5])
+    albumArt.attr('data-type', 'album')
+
+    currentTime.html('00:00');
+    seekBar.attr('max', music.duration);
+    musicDuration.html(formatTime(music.duration));
+}
+
+function btnPause() {
+    playBtnIcon.removeClass("bi-play");
+    playBtnIcon.addClass("bi-pause");
+    playBtn.removeClass("paused");    
+
+    music.play();
+}
+
+function btnPlay() {
+    playBtnIcon.addClass("bi-play");
+    playBtnIcon.removeClass("bi-pause");
+    playBtn.addClass("paused");   
+
+    music.pause();
+}
+
+
+/* LIKED */
+
+function setLikedButton(song_id) {
     $.ajax({
         type: 'POST',
-        url: "/is_liked/"+queue[i][1],
+        url: "/is_liked/"+song_id,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
         success: function(result){
-            isLiked=result
-            console.log("Is this song liked?")
-            console.log(result)
-            constructLikedButton($("#like-btn-icon"), isLiked, queue[i][1])
+            constructLikedButton($("#like-btn-icon"), result, song_id)
         },
         error: function(request, status, error){
             console.log("Error");
@@ -91,33 +295,19 @@ function setMusic(i) {
             console.log(error)
         }
     });
-
-    songName.html(song[0]);
-    artistName.html(song[2]);
-    var colorR = Math.floor((Math.random() * 256));
-    var colorG = Math.floor((Math.random() * 256));
-    var colorB = Math.floor((Math.random() * 256));
-
-    $(albumArt).css("background-color", "rgb(" + colorR + "," + colorG + "," + colorB + ")");
-
-    currentTime.html('00:00');
-    setTimeout(() => {
-        seekBar.attr('max', music.duration);
-        musicDuration.html(formatTime(music.duration));
-    }, 100);
 }
-
 
 function toggleLike(button) {
     
-    if (button.attr('data-liked') == 'true') {
+    if (button.attr('data-liked') == '1') {
         $.ajax({
             type: 'POST',
             url: "/dislike_song/"+button.data('song-id'),
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             success: function(result){
-                constructLikedButton(button, false, button.data('song-id'))
+                console.log(result)
+                constructLikedButton(button, 0, button.data('song-id'))
             },
             error: function(request, status, error){
                 console.log("Error");
@@ -133,7 +323,8 @@ function toggleLike(button) {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             success: function(result){
-                constructLikedButton(button, true, button.data('song-id'))
+                console.log(result)
+                constructLikedButton(button, 1, button.data('song-id'))
             },
             error: function(request, status, error){
                 console.log("Error");
@@ -147,10 +338,13 @@ function toggleLike(button) {
 
 function constructLikedButton(likedButton, isLiked, song_id) {
     likedButton.attr('data-song-id', song_id)
-    likedButton.on('click', function() {
-        toggleLike(likedButton)
-    });
     likedButton.attr('data-liked', isLiked)
+
+    likedButton.off();
+    likedButton.on('click', function() {
+        event.stopPropagation()
+        toggleLike(likedButton);
+    })
 
     if (isLiked) {
         likedButton.removeClass("bi-heart")
@@ -162,41 +356,7 @@ function constructLikedButton(likedButton, isLiked, song_id) {
     }
 }
 
-
-function formatTime (time) {
-    console.log("Formatting Time");
-
-    let min = Math.floor(time / 60);
-    if(min < 10){
-        min = `0${min}`;
-    }
-    let sec = Math.floor(time % 60);
-    if(sec < 10){
-        sec = `0${sec}`;
-    }
-    return `${min} : ${sec}`;
-}
-
-function btnPause() {
-    console.log("Switching button to pause");
-
-    playBtnIcon.removeClass("bi-play");
-    playBtnIcon.addClass("bi-pause");
-    playBtn.removeClass("paused");    
-
-    music.play();
-}
-
-function btnPlay() {
-    console.log("Switching button to play");
-
-    playBtnIcon.addClass("bi-play");
-    playBtnIcon.removeClass("bi-pause");
-    playBtn.addClass("paused");   
-
-    music.pause();
-}
-
+/* SIDEBAR FUNCTIONS */
 function signout() {
     $.ajax({
         type: "POST",
@@ -218,6 +378,10 @@ function signout() {
             window.location.href='/';
         }
     });
+}
+
+function goToHome() {
+    window.location.href='/'
 }
 
 function goToProfile() {
@@ -244,38 +408,50 @@ function goToPlaylists() {
     window.location.href="/my_playlists"
 }
 
-$(document).ready(function() {
-    console.log(queue);
+function populateSideBarPlaylists() {
+    $.ajax({
+        type: 'GET',
+        url: "/playlists/"+user.user_id,                
+        dataType : "json",
+        cache: true,
+        contentType: "application/json",
+        success: function(result){
+            let playlists = result[user.user_id]
 
-    $("#home-btn").on('click', function() {
-        window.location.href="/"
+            for (let i = 0; i < playlists.length; i++) {
+                createPlaylistItem($("#sidebar-playlists"), playlists[i][0], playlists[i][1]);
+            }
+        },
+        error: function(request, status, error){
+            console.log("Error");
+            console.log(request);
+            console.log(status);
+            console.log(error);
+        }
     });
+}
 
+/* WHEN DOC LOADS */
+$(document).ready(function() {
+
+    // ADD SIDEBAR LISTENERS
+    $("#home-btn").on('click', goToHome);
     $("#profile-btn").on('click', goToProfile)
-
     $("#signout-btn").on('click', signout);
-
     $("#search-btn").on('click', goToSearch);
-
     $("#songs-btn").on('click', goToSongs);
-
     $("#artists-btn").on('click', goToArtists);
-
     $("#podcasts-btn").on('click', goToPodcasts);
-
     $("#playlists-btn").on('click', goToPlaylists);
 
-    if (queue.length == 0) {
-        populateQueue();
-        btnPlay();
-    } else {
-        setMusic(0);
-        btnPlay();
-    }
+    // POPULATE SIDEBAR PLAYLISTS
+    populateSideBarPlaylists();
+
+    // SET MUSIC INITIAL
+    setMusic(q_num);
+    btnPlay();
 
     playBtn.click(function() {
-        console.log("Play/pause button was clicked");
-
         if (queue.length > 0) {
             if (playBtn.hasClass("paused")) {
                 btnPause();
@@ -286,9 +462,7 @@ $(document).ready(function() {
     });
 
     music.ontimeupdate = function () {
-        console.log("Time update");
         seekBar.val(music.currentTime);
-        // seekBar.attr('value', music.currentTime);
         currentTime.html(formatTime(music.currentTime));
         if(Math.floor(music.currentTime) >= Math.floor(seekBar.attr('max'))){
             forwardBtn.click();
@@ -296,8 +470,6 @@ $(document).ready(function() {
     }
 
     seekBar.change(function(e){
-        console.log("Seekbar change in input");
-
         music.currentTime = this.value;
         if (playBtn.hasClass("paused")){
             music.pause();
@@ -307,15 +479,13 @@ $(document).ready(function() {
     });
 
     forwardBtn.click(function (){
-        console.log("Forward button clicked");
-
         if (queue.length > 0) {
-            if (currentMusic >= queue.length - 1) {
-                currentMusic = 0;
+            if (q_num >= queue.length - 1) {
+                q_num = 0;
             } else {
-                currentMusic++;
+                q_num++;
             }
-            setMusic(currentMusic);
+            
             if (playBtn.hasClass("paused")){
                 music.pause();
                 btnPlay();
@@ -324,23 +494,33 @@ $(document).ready(function() {
                 btnPause();
             }
         }
+
+        setMusic(q_num);
     });
 
     backwardBtn.click(function () {
-        console.log("Backward button clicked");
-
         if (queue.length > 0) {
-            if (currentMusic <= 0) {
-                currentMusic = queue.length - 1;
+            if (q_num <= 0) {
+                q_num = queue.length - 1;
             } else {
-                currentMusic--;
+                q_num--;
             }
-            setMusic(currentMusic);
+            
             if (playBtn.hasClass("paused")){
                 btnPlay();
             } else {
                 btnPause();
             }
         }
+
+        setMusic(q_num);
+    });    
+
+})
+
+
+$(document).ready(function() {
+    $(".clickable").on('click', function() {
+        goToPage(this)
     });
 })

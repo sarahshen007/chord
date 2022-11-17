@@ -1,7 +1,6 @@
-import {SongCard} from "./music.js";
-import {Music} from "./music.js"
-
-let recommended = []
+import {getRandomColor} from "./layout.js"
+import {createMusicCard} from "./layout.js"
+import {goToPage} from "./layout.js"
 
 function populateForYou() {
     $.ajax({
@@ -12,11 +11,9 @@ function populateForYou() {
         contentType: "application/json",
         data : JSON.stringify(user),
         success: function(result){
-            for (let i = 0; i < result['recommended_songs'].length; i++) {
-                const recommended_songs = result['recommended_songs']
-                const musicObj = new Music(recommended_songs[i][0], recommended_songs[i][1], recommended_songs[i][2], recommended_songs[i][3], recommended_songs[i][4], recommended_songs[i][5])
-                const song = new SongCard(musicObj);
-                recommended.push(song);
+            for (let i = 0; i < result['Recommendations'].length; i++) {
+                const recs = result['Recommendations']
+                createMusicCard($('#recommendations'), [recs[i][0], recs[i][2]], recs[i][1], 'song')
             }
         },
         error: function(request, status, error){
@@ -24,24 +21,16 @@ function populateForYou() {
             console.log(request)
             console.log(status)
             console.log(error)
-        },
-        complete: function(){
-            for (let i = 0; i < recommended.length; i++) {
-                let song = recommended[i]
-                let musicCard, playButton = song.createSongCard($("#recommendations"));
-
-                $(musicCard).data(song.album_id);
-                $(playButton).data(song.song_id);
-
-                console.log($(musicCard).data());
-
-            }
         }
     });
 }
 
 $(document).ready(function (){    
-
     populateForYou();
 });
 
+$(document).ready(function() {
+    $(".clickable").on('click', function() {
+        goToPage(this)
+    });
+})

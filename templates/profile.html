@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let profile_user = {{profile_user|tojson}}
+    let created_playlists = {{created_playlists|tojson}}
+    let liked_songs_num = {{liked_songs_num|tojson}}
+    let liked_artists = {{liked_artists|tojson}}
+    let liked_podcasts = {{liked_podcasts|tojson}}
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'profile.js') }}"></script>
+
+<div id = "home-container">
+    <div id = "user-details" class="section-card card-details">
+        <div id="profile-pic" class="card-art profile-pic">
+
+        </div>
+        <div id="user-info" class="card-info">
+            <div id="user-name" class="card-name">{{profile_user[1]}}</div>
+            <div id="liked-songs-num" class="card-extra">Liked Songs: {{liked_songs_num}}</div>
+        </div>
+    </div>
+    
+    <div id="playlists-container" class="section-card card-container">
+        <h3 class="card-container-title">Playlists</h3>
+    </div>
+
+    <div id="artists-container" class="section-card card-container">
+        <h3 class="card-container-title">Followed Artists</h3>
+    </div>
+
+    <div id="podcasts-container" class="section-card card-container">
+        <h3 class="card-container-title">Followed Podcasts</h3>
+    </div>
+</div>
+
+{% endblock %}

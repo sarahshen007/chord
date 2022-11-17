@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let artist = {{artist|tojson}}
+    console.log(artist)
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'artist.js') }}"></script>
+
+<div id = "home-container">
+    <div id ="profile-details" class="section-card card-details">
+        <div id="profile-pic" class="card-art profile-pic">
+
+        </div>
+        <div id="profile-info" class="card-info">
+            <div id="profile-name" class="card-name">{{artist.Info[0][0]}}</div>
+            <button data-id={{artist.Info[0][1]}} data-type='artist' id="follow-btn" class="btn btn-light">
+            </button>
+        </div>
+        
+    </div>
+    
+    <div id="albums-container" class="section-card card-container">
+        <h3 class="card-container-title">Albums</h3>
+    </div>
+</div>
+
+{% endblock %}

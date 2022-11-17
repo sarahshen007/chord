@@ -78,7 +78,7 @@
               </li>
             </ul>
 
-            <div class="sidebar-playlists">
+            <div id="sidebar-playlists">
               <!-- dynamic population -->
             </div>
           </div>
@@ -95,12 +95,12 @@
             <i id="like-btn-icon" class="bi bi-heart"></i>
           </button>
           <div class="details">
-              <div id="album-art">
+              <div id="album-art" class="clickable">
               </div>
 
               <div id="album-text-wrapper">
                   <span id="song-name"></span>
-                  <span id="artist-name"></span>
+                  <span id="artist-name" class="clickable"></span>
               </div>
           </div>
 
@@ -129,9 +129,9 @@
     </body>
 
     <script>
-        var user = {{user|tojson}};
-        var queue = {{queue|tojson}};
+      var user = {{user|tojson}};
+      var queue = {{queue|tojson}};
+      var q_num = {{q_num|tojson}};
     </script>
-
     <script type="module" src="{{ url_for('static', filename = 'layout.js') }}"></script>
 </html>

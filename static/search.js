@@ -1,3 +1,8 @@
+import {getRandomColor} from "./layout.js"
+import {createMusicCard} from "./layout.js"
+import {createMusicListCard} from "./layout.js"
+import {goToPage} from "./layout.js"
+
 let search_results = []
 
 function getSearchResults(query) {
@@ -46,8 +51,10 @@ function populateResults(results) {
             console.log(results[key])
 
             for (var result in results[key]) {
-                let result_div = $('<div>'+results[key][result][0]+'</div>')
-                results_div.append(result_div)
+                const type = key.substring(0, key.length - 1).toLowerCase();
+                console.log('type: ', type)
+
+                createMusicListCard(results_div, [results[key][result][0], results[key][result[2]]], results[key][result][1], type)
             }
 
             $("#search-results").append(wrapper)
@@ -62,3 +69,9 @@ $(document).ready(function (){
         getSearchResults($('#search-bar').val())
     });
 });
+
+$(document).ready(function() {
+    $(".clickable").on('click', function() {
+        goToPage(this)
+    });
+})

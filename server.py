@@ -10,9 +10,11 @@ engine = create_engine(DATABASEURI)
 
 global q
 global user
+global q_num
 
 q = []
 user = {"username": "", "user_id": ""}
+q_num = -1
 
 @app.before_request
 def before_request():
@@ -24,117 +26,237 @@ def before_request():
     g.conn = None
 
 #############
-# ROUTES HERE
+# PAGES HERE
 #############
 
 # LOGIN PAGE / HOME
 @app.route('/')
 def home():
+    global q
+    global q_num
+
     if len(user["username"]) == 0:
         return render_template('login.html')
     else:
-        return render_template('home.html', user=user, queue=q)
+        if len(q) == 0:
+            q = get_recommended_songs()['Recommendations']
 
-@app.route('/login', methods=['POST'])
-def login():
-    global user
-    username = request.get_json()
+            print(q)
+            q_num = 0
+        return render_template('home.html', user=user, queue=q, q_num=q_num)
 
-    db = g.conn.execute("SELECT U.user_id, U.username\
-                        FROM users U \
-                        WHERE U.username = %s", username)
-
-    result = list(db)
-
-    if len(result) > 0:
-        user['username'] = result[0][1]
-        user['user_id'] = result[0][0]
-        
-    return jsonify(user)
-
-@app.route('/signout', methods=['POST'])
-def signout():
-    global user
-    
-    user = {"username": "", "user_id": ""}
-
-    return jsonify(user)
-
+# SEARCH PAGE
 @app.route('/search_page')
 def viewSearch():
-    return render_template('search.html', user=user, queue=q)
+    if len(user['user_id']) == 0:
+        return home()
+    return render_template('search.html', user=user, queue=q, q_num=q_num)
 
+# MY SONGS PAGE
 @app.route('/my_songs')
 def viewMySongs():
-    db = g.conn.execute("SELECT S.song_name, L.song_id, A.artist_name, B.artist_id \
-                          FROM likes_song L, Songs S, by B, Artists A \
-                          WHERE L.user_id = %s AND S.song_id = L.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id;", user['user_id'])
+    if len(user['user_id']) == 0:
+        return home()
 
-    songs = []
-    for i in db:
-        songs.append(tuple(i))
+    songs = get_liked_songs(user['user_id'])[user['user_id']]
 
-    return render_template('songs.html', user=user, queue=q, songs=songs)
+    return render_template('songs.html', user=user, queue=q, songs=songs, q_num=q_num)
 
+# MY ARTISTS PAGE
 @app.route('/my_artists')
 def viewMyArtists():
-    db = g.conn.execute("SELECT A.artist_name, F.artist_id \
-                          FROM Follows F, Artists A\
-                          WHERE F.user_id = %s and F.artist_id = A.artist_id", user['user_id'])
+    if len(user['user_id']) == 0:
+        return home()
 
-    artists = []
-    for i in db:
-        artists.append(tuple(i))
+    artists = get_followed_artists(user['user_id'])[user['user_id']]
 
-    return render_template('artists.html', user=user, queue=q, artists=artists)
+    return render_template('artists.html', user=user, queue=q, artists=artists, q_num=q_num)
 
+# MY PODCASTS PAGE
 @app.route('/my_podcasts')
 def viewMyPodcasts():
+    if len(user['user_id']) == 0:
+        return home()
     uid = user['user_id']
-    db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
-                          FROM Podcasts P, follows2 F \
-                          WHERE F.user_id = %s AND P.podcast_id = F.podcast_id;", uid)
-    
-    podcasts = []
-    for i in db:
-        podcasts.append(tuple(i))
 
-    return render_template('podcasts.html', user=user, queue=q, podcasts=podcasts)
+    podcasts = get_followed_podcasts(uid)[uid]
 
-# GET ALL PLAYLISTS A USER MADE
+    return render_template('podcasts.html', user=user, queue=q, podcasts=podcasts, q_num=q_num)
+
+# MY PLAYLISTS PAGE
 @app.route('/my_playlists')
 def viewMyPlaylists():
+    if len(user['user_id']) == 0:
+        return home()
     uid = user['user_id']
-    db = g.conn.execute("SELECT P.playlist_name, P.playlist_id \
-                          FROM Playlists P, creates C \
-                          WHERE C.user_id = %s AND P.playlist_id = C.playlist_id;", uid)
-    
-    playlists = []
+    playlists = get_playlists(uid)[uid]
+
+    return render_template('playlists.html', user=user, queue=q, playlists=playlists, q_num=q_num)
+
+# PROFILE PAGE 
+@app.route('/profile/<uid>')
+def viewProfile(uid=""):
+    if len(user['user_id']) == 0:
+        return home()
+
+    db = g.conn.execute("SELECT U.user_id, U.username \
+                    FROM Users U \
+                    WHERE U.user_id = %s", uid)
+
+    profile_users = []
     for i in db:
-        playlists.append(tuple(i))
-    return render_template('playlists.html', user=user, queue=q, playlists=playlists)
+        profile_users.append(tuple(i))
 
+    profile_user = profile_users[0]
+    created_playlists = get_playlists(uid)[uid]
+    liked_songs_num = len(get_liked_songs(uid)[uid])
+    liked_artists = get_followed_artists(uid)[uid]
+    liked_podcasts = get_followed_podcasts(uid)[uid]
+
+    return render_template('profile.html', user=user, queue=q, liked_artists=liked_artists, liked_podcasts=liked_podcasts, profile_user=profile_user, created_playlists=created_playlists, q_num=q_num, liked_songs_num=liked_songs_num)
+
+@app.route('/album/<aid>')
+def viewAlbum(aid=""):
+    if len(user['user_id']) == 0:
+        return home()
+
+    db = g.conn.execute("SELECT DISTINCT A.album_name, A.album_id, T.artist_name, T.artist_id \
+                    FROM Albums A, Artists T, By B \
+                    WHERE A.album_id = %s AND B.artist_id = T.artist_id AND B.album_id = A.album_id;", aid)
+
+    album_info = []
+    for i in db:
+        album_info.append(tuple(i))
+
+    print(album_info)
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id, T.artist_name, B.artist_id \
+                    FROM Albums A, By B, Songs S, Artists T \
+                    WHERE A.album_id = %s AND B.album_id = A.album_id AND B.song_id = S.song_id AND T.artist_id = B.artist_id;", aid)
+
+    album_songs = []
+    for i in db:
+        album_songs.append(tuple(i))
+
+    album = {
+        'Info': album_info,
+        'Songs': album_songs,        
+    }
+    return render_template('album.html', user=user, queue=q, q_num=q_num, album=album)
+
+@app.route('/song/<sid>')
+def viewSong(sid=""):
+    db = g.conn.execute("SELECT DISTINCT A.album_name, A.album_id \
+                        FROM Albums A, By B \
+                        WHERE B.song_id = %s AND B.album_id = A.album_id;", sid)
+    albums = []
+    for i in db:
+        albums.append(tuple(i))
+
+    if len(albums) != 0:
+        return viewAlbum(albums[0][1])
+    else:
+        return home()
+
+@app.route('/artist/<aid>')
+def viewArtist(aid=""):
+    if len(user['user_id']) == 0:
+        return home()
+
+    db = g.conn.execute("SELECT DISTINCT A.artist_name, A.artist_id \
+                    FROM Artists A \
+                    WHERE A.artist_id = %s", aid)
+
+    artist_info = []
+    for i in db:
+        artist_info.append(tuple(i))
+
+    db = g.conn.execute("SELECT A.album_name, A.album_id, T.artist_name, T.artist_id \
+                    FROM Albums A, By B, Artists T \
+                    WHERE T.artist_id = %s AND B.album_id = A.album_id AND B.artist_id = T.artist_id \
+                        ORDER BY A.album_name ASC", aid)
+
+    artist_albums = []
+    for i in db:
+        artist_albums.append(tuple(i))
+
+    artist = {
+        'Info': artist_info,
+        'Albums': artist_albums,        
+    }
+    return render_template('artist.html', user=user, queue=q, q_num=q_num, artist=artist)
+
+@app.route('/playlist/<pid>')
+def viewPlaylist(pid=""):
+    if len(user['user_id']) == 0:
+        return home()
+
+    db = g.conn.execute("SELECT DISTINCT P.playlist_name, P.playlist_id, U.username, U.user_id \
+                    FROM Playlists P, Creates C, Users U \
+                    WHERE P.playlist_id = %s AND C.playlist_id = P.playlist_id AND U.user_id = C.user_id;", pid)
+
+    playlist_info = []
+    for i in db:
+        playlist_info.append(tuple(i))
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id \
+                    FROM Playlists P, Contains C, Songs S, Artists A, By B \
+                    WHERE P.playlist_id = %s AND P.playlist_id = C.playlist_id AND C.song_id = S.song_id AND B.artist_id = A.artist_id AND S.song_id = B.song_id \
+                        ORDER BY S.song_id ASC;", pid)
+
+    playlist_songs = []
+    for i in db:
+        playlist_songs.append(tuple(i))
+
+    playlist = {
+        'Info': playlist_info,
+        'Songs': playlist_songs,        
+    }
+    return render_template('playlist.html', user=user, queue=q, q_num=q_num, playlist=playlist)
+
+
+#############
+# RETRIEVE INFO HERE
+#############
+
+# GET WHETHER A SONG IS LIKED
 @app.route('/is_liked/<song_id>', methods=['POST'])
-def is_liked(song_id=None):
+def is_liked(song_id=""):
 
-    db = g.conn.execute("SELECT * \
-                        FROM likes_song L \
-                        WHERE L.song_id = %s AND L.user_id = %s", song_id, user["user_id"])
-
+    db = g.conn.execute("SELECT L.song_id, S.song_name \
+                        FROM likes_song L, Songs S \
+                        WHERE L.user_id = %s AND S.song_id = L.song_id", user["user_id"])
 
     songs = []    
     for i in db:
-        songs.append(tuple(i))
-    if len(songs) > 0:
-        return jsonify(True)
-    return jsonify(False)
+        songs.append(tuple(i)[0])
+
+    if song_id in set(songs):
+        return jsonify(1)
+    return jsonify(0)
+
+# GET WHETHER THE USER FOLLOWS AN ARTIST 
+@app.route('/follows_artist/<aid>', methods=['GET'])
+def follows_artist(aid=''):
+    db = g.conn.execute("SELECT A.artist_id, A.artist_name \
+                        FROM Follows F, Artists A \
+                        WHERE F.user_id = %s AND A.artist_id = F.artist_id", user["user_id"])
+
+    artists = []    
+    for i in db:
+        artists.append(tuple(i)[0])
+
+    print(artists)
+
+    if aid in set(artists):
+        return jsonify(1)
+    return jsonify(0)
 
 
 # GET SONG RECS BASED ON GENRE
 @app.route('/song_recommendations', methods=['POST'])
 def get_recommended_songs():
-    req = request.get_json()
-    uid = req['user_id']
+    uid = user['user_id']
     
     db = g.conn.execute("SELECT I.genre_name \
                         FROM likes_song L, is_genre I \
@@ -144,18 +266,81 @@ def get_recommended_songs():
                         LIMIT 1;", uid)
 
     max_g = [i for i in db]
+    db_songs = []
 
-    db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
-                               FROM Songs S, Is_genre I, by B, Artists A, Albums D \
-                               WHERE S.song_id = I.song_id AND I.genre_name = %s \
-                                AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
-                                AND D.album_id = B.album_id;", max_g[0][0])
-    
+    if len(max_g) > 0:
+        db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
+                                FROM Songs S, Is_genre I, by B, Artists A, Albums D \
+                                WHERE S.song_id = I.song_id AND I.genre_name = %s \
+                                    AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
+                                    AND D.album_id = B.album_id;", max_g[0][0])
+    else:
+        db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
+                                FROM Songs S, Is_genre I, by B, Artists A, Albums D \
+                                WHERE S.song_id = I.song_id AND I.genre_name = %s \
+                                    AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
+                                    AND D.album_id = B.album_id;", "pop")
+
     rec_songs = []
     for i in db_songs:
         rec_songs.append(tuple(i))
 
-    return {'recommended_songs': random.sample(rec_songs, 4)}
+    return {'Recommendations': random.sample(rec_songs, 14)}
+
+# GET ALL SONGS A USER HAS LIKED
+@app.route('/songs/<uid>', methods=['GET'])
+def get_liked_songs(uid=""):
+    db = g.conn.execute("SELECT S.song_name, L.song_id, A.artist_name, B.artist_id \
+                          FROM likes_song L, Songs S, by B, Artists A \
+                          WHERE L.user_id = %s AND S.song_id = L.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id \
+                            ORDER BY S.song_name ASC;", user['user_id'])
+
+    songs = []
+    for i in db:
+        songs.append(tuple(i))
+
+    return {uid: songs}
+
+# GET ALL ARTISTS FOLLOWED BY A USER
+@app.route('/artists/<uid>', methods=['GET'])
+def get_followed_artists(uid=''):
+    db = g.conn.execute("SELECT A.artist_name, F.artist_id \
+                          FROM Follows F, Artists A\
+                          WHERE F.user_id = %s and F.artist_id = A.artist_id\
+                            ORDER BY A.artist_name ASC;", user['user_id'])
+
+    artists = []
+    for i in db:
+        artists.append(tuple(i))
+    
+    return {uid: artists}
+
+# GET ALL PLAYLISTS CREATED BY A USER
+@app.route('/playlists/<uid>', methods=['GET'])
+def get_playlists(uid=""):
+    db = g.conn.execute("SELECT P.playlist_name, P.playlist_id, U.username, U.user_id \
+                          FROM Playlists P, creates C, Users U \
+                          WHERE C.user_id = %s AND P.playlist_id = C.playlist_id AND C.user_id = U.user_id;", uid)
+    
+    playlists = []
+    for i in db:
+        playlists.append(tuple(i))
+
+    return {uid: playlists}
+
+# GET ALL PODCASTS FOLLOWED BY A USER
+@app.route('/podcasts/<uid>', methods=['GET'])
+def get_followed_podcasts(uid=""):
+    db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
+                          FROM Podcasts P, follows2 F \
+                          WHERE F.user_id = %s AND P.podcast_id = F.podcast_id\
+                          ORDER BY P.podcast_name ASC;", uid)
+    
+    podcasts = []
+    for i in db:
+        podcasts.append(tuple(i))
+
+    return {uid: podcasts}
 
 
 # GET ALL ALBUMS AN ARTIST CREATES
@@ -165,7 +350,8 @@ def get_artist_albums():
     artist_id = req['artist_id']
     db = g.conn.execute("SELECT A.album_name, A.album_id \
                           FROM Albums A, By B \
-                          WHERE B.artist_id = %s AND A.album_id = B.album_id;", artist_id)
+                          WHERE B.artist_id = %s AND A.album_id = B.album_id\
+                            ORDER BY A.album_name ASC;", artist_id)
     
     albums = []
     for i in db:
@@ -180,7 +366,8 @@ def get_podcast_episodes():
     podcast_id = req['podcast_id']
     db = g.conn.execute("SELECT E.episode_name, E.episode_id \
                           FROM Episodes E, Contains2 C \
-                          WHERE C.podcast_id = %s AND E.episode_id = C.episode_id;", podcast_id)
+                          WHERE C.podcast_id = %s AND E.episode_id = C.episode_id\
+                            ORDER BY E.episode_name ASC;", podcast_id)
 
     episodes = []
     for i in db:
@@ -230,10 +417,10 @@ def search_entities():
     
     res = {}
     for e in entities:
-        db = g.conn.execute("SELECT "+e[0]+"."+e[1]+", "+e[0]+"."+e[2]+" \
+        db = g.conn.execute("SELECT DISTINCT "+e[0]+"."+e[1]+", "+e[0]+"."+e[2]+" \
                              FROM "+e[0]+" \
-                             WHERE "+e[0]+"."+e[1]+"~* %s", 
-                             query)
+                             WHERE "+e[0]+"."+e[1]+"~* %s\
+                             ORDER BY "+e[0]+"."+e[1]+" ASC;", query)
         
         vals = []
         for i in db:
@@ -241,6 +428,50 @@ def search_entities():
         res[e[0]] = vals
     
     return res
+
+
+#############
+# SET INFO ON SERVER HERE
+#############
+
+# LOGIN AND SET USER
+@app.route('/login', methods=['POST'])
+def login():
+    global user
+    username = request.get_json()
+
+    db = g.conn.execute("SELECT U.user_id, U.username\
+                        FROM users U \
+                        WHERE U.username = %s", username)
+
+    result = list(db)
+
+    if len(result) > 0:
+        user['username'] = result[0][1]
+        user['user_id'] = result[0][0]
+        
+    return jsonify(user)
+
+# SIGNOUT AND RESET Q, USER, Q_NUM
+@app.route('/signout', methods=['POST'])
+def signout():
+    global user
+    global q
+    
+    q = []
+    user = {"username": "", "user_id": ""}
+    q_num = -1
+
+    return jsonify(user)
+
+# SET NUM IN QUEUE
+@app.route('/set_q_num', methods=['POST'])
+def set_q_num():
+    global q_num
+
+    q_num = int(request.get_json())
+    
+    return jsonify(q_num)
 
 # MAKE A PLAYLIST
 @app.route('/create_playlist', methods=['GET', 'POST'])
@@ -258,7 +489,6 @@ def create_playlist():
     g.conn.execute("INSERT INTO Creates(user_id, playlist_id VALUES(%s, %s)", user_id, str(max_val+1))
     return {"playlist_id": str(max_val+1)}
 
-
 # ADD A SONG TO PLAYLIST
 @app.route('/add_song', methods=['POST'])
 def add_song():
@@ -269,28 +499,32 @@ def add_song():
     g.conn.execute("INSERT INTO Contains(playlist_id, song_id) VALUES(%s, %s)", playlist_id, song_id)
     return {"Insertion": (song_id, playlist_id)}
 
-
 # FOLLOW AN ARTIST
-@app.route('/follow_artist', methods=['POST'])
-def follow_artist():
-    req = request.get_json()
-    artist_id = req['artist_id']
-    user_id = req['user_id']
+@app.route('/follow_artist/<artist_id>', methods=['POST'])
+def follow_artist(artist_id=""):
+    user_id = user['user_id']
 
     g.conn.execute("INSERT INTO Follows(user_id, artist_id) VALUES(%s, %s)", user_id, artist_id)
     return {"Insertion": (artist_id, user_id)}
 
+# UNFOLLOW AN ARTIST
+@app.route('/unfollow_artist/<artist_id>', methods=['POST'])
+def unfollow_artist(artist_id=""):
+    user_id = user['user_id']
+
+    g.conn.execute("DELETE FROM Follows F WHERE F.user_id = %s AND F.artist_id = %s;", user_id, artist_id)
+    return {"Deletion": (artist_id, user_id)}
+
 
 # FOLLOW A PODCAST
-@app.route('/follow_podcast', methods=['POST'])
-def follow_podcast():
-    req = request.get_json()
-    podcast_id = req['podcast_id']
-    user_id = req['user_id']
+@app.route('/follow_podcast/<podcast_id>', methods=['POST'])
+def follow_podcast(podcast_id=""):
+    user_id = user['user_id']
 
     g.conn.execute("INSERT INTO Follows2(podcast_id, user_id) VALUES(%s, %s)", podcast_id, user_id)
     return {"Insertion": (podcast_id, user_id)}
 
+# UNFOLLOW A PODCAST
 
 # LIKE A SONG
 @app.route('/like_song/<song_id>', methods=['POST'])
@@ -305,9 +539,8 @@ def like_song(song_id=None):
 def dislike_song(song_id=None):
     user_id = user['user_id']
 
-    g.conn.execute("DELETE FROM Likes_song L WHERE L.song_id = %s AND L.user_id = %s)", song_id, user_id)
+    g.conn.execute("DELETE FROM Likes_song L WHERE L.song_id = %s AND L.user_id = %s", song_id, user_id)
     return {"Deletion": (song_id, user_id)}
-
 
 # LIKE A PLAYLIST
 @app.route('/like_playlist', methods=['POST'])
@@ -319,12 +552,11 @@ def like_playlist():
     g.conn.execute("INSERT INTO Likes_playlist(playlist_id, user_id) VALUES(%s, %s)", playlist_id, user_id)
     return {"Insertion": (playlist_id, user_id)}
 
-
 # ADD A SONG TO QUEUE
-@app.route('/enqueue_song', methods=['POST'])
-def enqueue_song():
-    req = request.get_json()
-    song_id = req
+@app.route('/enqueue_song/<song_id>', methods=['POST'])
+def enqueue_song(song_id = ""):
+    global q
+    global q_num
 
     db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id \
                          FROM Songs S, Artists A, By B \
@@ -332,46 +564,47 @@ def enqueue_song():
     
     for i in db:
         q.append(tuple(i))
-    
-    return {"Insertion": q}
+        q_num = len(q) - 1
 
+    print(q)
+    
+    return {"Insertion": q, "Num": q_num}
 
 # ADD A PLAYLIST TO QUEUE
-@app.route('/enqueue_playlist', methods=['POST'])
-def enqueue_playlist():
-    req = request.get_json()
-    playlist_id = req['playlist_id']
+@app.route('/enqueue_playlist/<playlist_id>', methods=['POST'])
+def enqueue_playlist(playlist_id = ""):
+    global q_num
 
     db = g.conn.execute("SELECT S.song_name, S.song_id \
                          FROM Songs S, Contains C \
                          WHERE C.playlist_id = %s AND S.song_id = C.song_id", playlist_id)
     
+    temp = q_num
+
     for i in db:
         q.append(tuple(i))
+        temp = q_num + 1
     
-    return {"Insertion": playlist_id}
+    q_num = temp
 
-
-# GO TO NEXT SONG
-@app.route('/next_song', methods=['GET'])
-def next_song():
-    song_name, song_id = q.pop(0)
-    return {'song_name': song_name, 'song_id': song_id}
+    return {"Insertion": q, "Num": q_num}
 
 # ADD ALBUM TO QUEUE
-@app.route('/enqueue_album', methods=['POST'])
-def enqueue_album():
-    req = request.get_json()
-    album_id = req['album_id']
-
+@app.route('/enqueue_album/<album_id>', methods=['POST'])
+def enqueue_album(album_id = ""):
+    global q_num
     db = g.conn.execute("SELECT S.song_name, S.song_id \
                          FROM Songs S, By B \
                          WHERE B.album_id = %s AND S.song_id = B.song_id", album_id)
     
+    temp = q_num
+
     for i in db:
         q.append(tuple(i))
     
-    return {"Insertion": album_id}
+    q_num = temp
+    
+    return {"Insertion": q, "Num": q_num}
 
 if __name__ == "__main__":
   import click

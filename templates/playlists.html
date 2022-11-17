@@ -5,16 +5,12 @@
 <script>
     let playlists = {{playlists|tojson}}
 </script>
-<script type="module" src="{{ url_for('static', filename = 'liked_playlists.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename = 'my_playlists.js') }}"></script>
 
 <div id = "home-container">
     <h2>My Playlists</h2>    
-    <div id="liked-playlists-container" class="section-card">
-        {% if playlists %}
-            {% for playlist in playlists %}
-                <div data-playlist-id = {{playlist[1]}}>{{playlist[0]}}</div>
-            {% endfor %}
-        {% else %}
+    <div id="playlists-container" class="section-card">
+        {% if playlists.Playlists|length == 0 %}
             <div>Nothing to see here...</div>
         {% endif %}
     </div>

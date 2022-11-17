@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    let playlist = {{playlist|tojson}}
+</script>
+
+<script type="module" src="{{ url_for('static', filename = 'playlist.js') }}"></script>
+<div id = "home-container">
+    {% if playlist.Info|length > 0 %}
+    <div id = "album-details" class="section-card card-details">
+        <div id="album-pic" class="card-art">
+        </div>
+        <div id="album-info" class="card-info">
+            <div id="album-name" class="card-name">{{playlist.Info[0][0]}}</div>
+            <div id="album-artist" data-id={{playlist.Info[0][3]}} data-type='artist' class="card-extra clickable">{{ playlist.Info[0][2]}}</div>
+        </div>
+        <div id="edit-btn">
+            <i class="bi bi-pencil"></i>
+        </div>
+    </div>
+    
+    <div id="songs-container" class="section-card">
+    </div>
+
+    {% else %}
+
+    <h2>Playlist not found...</h2>
+
+    {% endif %}
+</div>
+
+{% endblock %}

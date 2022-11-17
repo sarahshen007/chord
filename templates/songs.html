@@ -11,14 +11,9 @@
 <div id = "home-container">
     <h2>My Liked Songs</h2>    
     <div id="liked-songs-container" class="section-card">
-        {% if songs %}
-            {% for song in songs %}
-                <div data-song-id = {{song[1]}}>{{song[0]}}</div>
-            {% endfor %}
-        {% else %}
+        {% if songs|length == 0 %}
             <div>Nothing to see here...</div>
         {% endif %}
-        
     </div>
 </div>
 
