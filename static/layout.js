@@ -249,10 +249,14 @@ export function createPlaylistItem(container, name, id) {
     container.append(playlistName);
 }
 
-
+// toggle following button
+// @param button element that is being toggled
 export function toggleFollowing(button) {
     
+    // if currently the button item is being followed
     if (button.attr('data-following') == '1') {
+
+        // 
         $.ajax({
             type: 'POST',
             url: "/unfollow_"+button.data('type')+"/" + button.data('id'),
@@ -563,6 +567,10 @@ function populateSideBarPlaylists() {
             console.log(error);
         }
     });
+}
+
+function myOnLoadedData() {
+    setMusic(q_num);
 }
 
 /* WHEN DOC LOADS */

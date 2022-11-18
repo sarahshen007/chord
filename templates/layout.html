@@ -19,9 +19,15 @@
 
         <title>Chord</title>
     </head>
+    <script>
+      var user = {{user|tojson}};
+      var queue = {{queue|tojson}};
+      var q_num = {{q_num|tojson}};
+    </script>
+    <script type="module" src="{{ url_for('static', filename = 'layout.js') }}"></script>
 
+    <audio src="{{ url_for('static', filename = 'brazil.mp3') }}" type="audio/mpeg" id="audio" autoplay="false" autostart="0" autostart="false"></audio>
     <body>
-      <audio src="{{ url_for('static', filename = 'brazil.mp3') }}" type="audio/mpeg" id="audio" autoplay="false" autostart="0" autostart="false" ></audio>
 
       <div class="wrapper">
         <div class="sidebar">
@@ -127,11 +133,4 @@
           </div>
       </div>
     </body>
-
-    <script>
-      var user = {{user|tojson}};
-      var queue = {{queue|tojson}};
-      var q_num = {{q_num|tojson}};
-    </script>
-    <script type="module" src="{{ url_for('static', filename = 'layout.js') }}"></script>
 </html>
