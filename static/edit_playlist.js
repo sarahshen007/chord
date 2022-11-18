@@ -92,22 +92,6 @@ function populateResults(results) {
         $("#search-results").append(wrapper)
     }
 
-    // clicking any add button will add the corresponding song to the newPlaylistSongs list
-    $(".add-btn").on('click', function(){
-        event.stopPropagation()
-
-        // get the button clicked
-        const button = $(this)
-
-        // add song corresponding to button to the list of new playlist songs
-        newPlaylistSongs.push([button.data('name'), button.data('id'), button.data('creator')])
-
-        // refresh the displayed list of songs in the playlist to represent change
-        // #songs-container - the container on the page showing all the songs in the playlist
-        populateListCardContainer($("#songs-container"), newPlaylistSongs, 'song', -1)
-
-    })
-
 }
 
 
@@ -276,4 +260,19 @@ $(document).ready(function() {
         populateListCardContainer($("#songs-container"), newPlaylistSongs, 'song', -1)
     });
 
+    // clicking any add button will add the corresponding song to the newPlaylistSongs list
+    $("#search-results").on('click', '.add-btn', function() {
+        event.stopPropagation()
+
+        // get the button clicked
+        const button = $(this)
+
+        // add song corresponding to button to the list of new playlist songs
+        newPlaylistSongs.push([button.data('name'), button.data('id'), button.data('creator')])
+
+        // refresh the displayed list of songs in the playlist to represent change
+        // #songs-container - the container on the page showing all the songs in the playlist
+        populateListCardContainer($("#songs-container"), newPlaylistSongs, 'song', -1)
+
+    } )
 })

@@ -493,6 +493,7 @@ export function setLikedButton(button, id, type) {
 
 /* MUSIC PLAYER */
 const music = document.querySelector('#audio'); // audio element containing mp3 file
+music.preload = "auto"
 
 const seekBar = $('.seek-bar');                 // seek bar for track
 const songName = $('#song-name');               // current track's name
@@ -549,8 +550,12 @@ function setMusic(i) {
     albumArt.attr('data-type', 'album')                             // set art type to album
 
     currentTime.html('00:00');                                      // set current time displayed to 00:00
-    seekBar.attr('max', music.duration);                            // set seek bar's maximum value to music duration
-    musicDuration.html(formatTime(music.duration));                 // set max duration displayed to music duration
+
+    var audio = $("#audio")[0];
+    $("#audio").on("loadedmetadata", function() {
+        seekBar.attr('max', audio.duration);                            // set seek bar's maximum value to music duration
+        musicDuration.html(formatTime(audio.duration));                 // set max duration displayed to music duration
+    }); 
 }
 
 // set button to pause

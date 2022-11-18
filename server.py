@@ -157,7 +157,7 @@ def viewAlbum(aid=""):
     for i in db:
         album_info.append(tuple(i))
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, T.artist_name, B.artist_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, T.artist_name, B.artist_id \
                     FROM Albums A, By B, Songs S, Artists T \
                     WHERE A.album_id = %s AND B.album_id = A.album_id AND B.song_id = S.song_id AND T.artist_id = B.artist_id;", aid)
 
@@ -215,7 +215,7 @@ def viewArtist(aid=""):
     for i in db:
         artist_info.append(tuple(i))
 
-    db = g.conn.execute("SELECT A.album_name, A.album_id, T.artist_name, T.artist_id \
+    db = g.conn.execute("SELECT DISTINCT A.album_name, A.album_id, T.artist_name, T.artist_id \
                     FROM Albums A, By B, Artists T \
                     WHERE T.artist_id = %s AND B.album_id = A.album_id AND B.artist_id = T.artist_id \
                         ORDER BY A.album_name ASC", aid)
@@ -244,7 +244,7 @@ def viewPlaylist(pid=""):
     for i in db:
         playlist_info.append(tuple(i))
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, A.artist_id \
                     FROM Playlists P, Contains C, Songs S, Artists A, By B \
                     WHERE P.playlist_id = %s AND P.playlist_id = C.playlist_id AND C.song_id = S.song_id AND B.artist_id = A.artist_id AND S.song_id = B.song_id \
                         ORDER BY S.song_id ASC;", pid)
@@ -273,7 +273,7 @@ def viewPodcast(pid=""):
     for i in db:
         podcast_info.append(tuple(i))
 
-    db = g.conn.execute("SELECT E.episode_name, E.episode_id, P.podcast_name, P.podcast_id \
+    db = g.conn.execute("SELECT DISTINCT E.episode_name, E.episode_id, P.podcast_name, P.podcast_id \
                     FROM Podcasts P, Contains2 C, Episodes E \
                     WHERE P.podcast_id = %s AND P.podcast_id = C.podcast_id AND C.episode_id = E.episode_id \
                         ORDER BY E.episode_id ASC;", pid)
@@ -294,7 +294,7 @@ def viewPodcast(pid=""):
 @app.route('/is_liked_song/<song_id>', methods=['POST'])
 def is_liked_song(song_id=""):
 
-    db = g.conn.execute("SELECT L.song_id, S.song_name \
+    db = g.conn.execute("SELECT DISTINCT L.song_id, S.song_name \
                         FROM likes_song L, Songs S \
                         WHERE L.user_id = %s AND S.song_id = L.song_id", user["user_id"])
 
@@ -310,7 +310,7 @@ def is_liked_song(song_id=""):
 @app.route('/is_liked_playlist/<pid>', methods=['POST'])
 def is_liked_playlist(pid=""):
 
-    db = g.conn.execute("SELECT L.playlist_id, P.playlist_name \
+    db = g.conn.execute("SELECT DISTINCT L.playlist_id, P.playlist_name \
                         FROM likes_playlist L, Playlists P \
                         WHERE L.user_id = %s AND P.playlist_id = L.playlist_id", user["user_id"])
 
@@ -325,7 +325,7 @@ def is_liked_playlist(pid=""):
 # GET WHETHER THE USER FOLLOWS AN ARTIST 
 @app.route('/follows_artist/<aid>', methods=['GET'])
 def follows_artist(aid=''):
-    db = g.conn.execute("SELECT A.artist_id, A.artist_name \
+    db = g.conn.execute("SELECT DISTINCT A.artist_id, A.artist_name \
                         FROM Follows F, Artists A \
                         WHERE F.user_id = %s AND A.artist_id = F.artist_id", user["user_id"])
 
@@ -340,7 +340,7 @@ def follows_artist(aid=''):
 # GET WHETHER THE USER FOLLOWS A PODCAST
 @app.route('/follows_podcast/<pid>', methods=['GET'])
 def follows_podcast(pid=''):
-    db = g.conn.execute("SELECT P.podcast_id, P.podcast_name \
+    db = g.conn.execute("SELECT DISTINCT P.podcast_id, P.podcast_name \
                         FROM Follows2 F, Podcasts P \
                         WHERE F.user_id = %s AND P.podcast_id = F.podcast_id", user["user_id"])
 
@@ -368,13 +368,13 @@ def get_recommended_songs():
     db_songs = []
 
     if len(max_g) > 0:
-        db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
+        db_songs = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
                                 FROM Songs S, Is_genre I, by B, Artists A, Albums D \
                                 WHERE S.song_id = I.song_id AND I.genre_name = %s \
                                     AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
                                     AND D.album_id = B.album_id;", max_g[0][0])
     else:
-        db_songs = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
+        db_songs = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, B.artist_id, D.album_name, B.album_id \
                                 FROM Songs S, Is_genre I, by B, Artists A, Albums D \
                                 WHERE S.song_id = I.song_id AND I.genre_name = %s \
                                     AND A.artist_id = B.artist_id AND B.song_id = S.song_id \
@@ -389,7 +389,7 @@ def get_recommended_songs():
 # GET ALL SONGS A USER HAS LIKED
 @app.route('/songs/<uid>', methods=['GET'])
 def get_liked_songs(uid=""):
-    db = g.conn.execute("SELECT S.song_name, L.song_id, A.artist_name, B.artist_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, L.song_id, A.artist_name, B.artist_id \
                           FROM likes_song L, Songs S, by B, Artists A \
                           WHERE L.user_id = %s AND S.song_id = L.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id \
                             ORDER BY S.song_name ASC;", user['user_id'])
@@ -403,7 +403,7 @@ def get_liked_songs(uid=""):
 # GET ALL ARTISTS FOLLOWED BY A USER
 @app.route('/artists/<uid>', methods=['GET'])
 def get_followed_artists(uid=''):
-    db = g.conn.execute("SELECT A.artist_name, F.artist_id \
+    db = g.conn.execute("SELECT DISTINCT A.artist_name, F.artist_id \
                           FROM Follows F, Artists A\
                           WHERE F.user_id = %s and F.artist_id = A.artist_id\
                             ORDER BY A.artist_name ASC;", user['user_id'])
@@ -417,7 +417,7 @@ def get_followed_artists(uid=''):
 # GET ALL PLAYLISTS CREATED BY A USER
 @app.route('/playlists/<uid>', methods=['GET'])
 def get_playlists(uid=""):
-    db = g.conn.execute("SELECT P.playlist_name, P.playlist_id, U.username, U.user_id \
+    db = g.conn.execute("SELECT DISTINCT P.playlist_name, P.playlist_id, U.username, U.user_id \
                           FROM Playlists P, creates C, Users U \
                           WHERE C.user_id = %s AND P.playlist_id = C.playlist_id AND C.user_id = U.user_id;", uid)
     
@@ -430,7 +430,7 @@ def get_playlists(uid=""):
 # GET ALL PLAYLISTS LIKED BY A USER
 @app.route('/liked_playlists/<uid>', methods=['GET'])
 def get_liked_playlists(uid=""):
-    db = g.conn.execute("SELECT P.playlist_name, P.playlist_id, U.username, U.user_id \
+    db = g.conn.execute("SELECT DISTINCT P.playlist_name, P.playlist_id, U.username, U.user_id \
                           FROM Playlists P, Likes_Playlist L, Users U, Creates C \
                           WHERE L.user_id = %s AND P.playlist_id = L.playlist_id AND C.playlist_id = L.playlist_id AND C.user_id = U.user_id;", uid)
     
@@ -443,7 +443,7 @@ def get_liked_playlists(uid=""):
 # GET ALL PODCASTS FOLLOWED BY A USER
 @app.route('/podcasts/<uid>', methods=['GET'])
 def get_followed_podcasts(uid=""):
-    db = g.conn.execute("SELECT P.podcast_name, P.podcast_id \
+    db = g.conn.execute("SELECT DISTINCT P.podcast_name, P.podcast_id \
                           FROM Podcasts P, follows2 F \
                           WHERE F.user_id = %s AND P.podcast_id = F.podcast_id\
                           ORDER BY P.podcast_name ASC;", uid)
@@ -459,7 +459,7 @@ def get_followed_podcasts(uid=""):
 def get_artist_albums():
     req = request.get_json()
     artist_id = req['artist_id']
-    db = g.conn.execute("SELECT A.album_name, A.album_id \
+    db = g.conn.execute("SELECT DISTINCT A.album_name, A.album_id \
                           FROM Albums A, By B \
                           WHERE B.artist_id = %s AND A.album_id = B.album_id\
                             ORDER BY A.album_name ASC;", artist_id)
@@ -474,7 +474,7 @@ def get_artist_albums():
 def get_podcast_episodes():
     req = request.get_json()
     podcast_id = req['podcast_id']
-    db = g.conn.execute("SELECT E.episode_name, E.episode_id \
+    db = g.conn.execute("SELECT DISTINCT E.episode_name, E.episode_id \
                           FROM Episodes E, Contains2 C \
                           WHERE C.podcast_id = %s AND E.episode_id = C.episode_id\
                             ORDER BY E.episode_name ASC;", podcast_id)
@@ -489,7 +489,7 @@ def get_podcast_episodes():
 def get_album_songs():
     req = request.get_json()
     album_id = req['album_id']
-    db = g.conn.execute("SELECT S.song_name, S.song_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id \
                           FROM Songs S, Is_genre I \
                           WHERE I.album_id = %s AND S.song_id = I.song_id;", album_id)
     
@@ -689,7 +689,7 @@ def enqueue_song(song_id = ""):
     global q
     global q_num
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
                          FROM Songs S, Artists A, By B, Albums C \
                          WHERE S.song_id = %s AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND C.album_id = B.album_id", song_id)
     
@@ -705,7 +705,7 @@ def enqueue_playlist(playlist_id = ""):
     global q_num
     global q
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, B.album_name, B.album_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, A.artist_id, B.album_name, B.album_id \
                          FROM Songs S, Contains C, Artists A, Albums L, By B \
                          WHERE C.playlist_id = %s AND S.song_id = C.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND L.album_id = B.album_id", playlist_id)
     
@@ -723,7 +723,7 @@ def enqueue_album(album_id = ""):
     global q_num
     global q
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
+    db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
                          FROM Songs S, Artists A, By B, Albums C \
                          WHERE C.album_id = %s AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND C.album_id = B.album_id", album_id)
     
@@ -753,7 +753,7 @@ def editPlaylist(pid='new'):
         for i in db:
             playlist_info.append(tuple(i))
 
-        db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id \
+        db = g.conn.execute("SELECT DISTINCT S.song_name, S.song_id, A.artist_name, A.artist_id \
                         FROM Playlists P, Contains C, Songs S, Artists A, By B \
                         WHERE P.playlist_id = %s AND P.playlist_id = C.playlist_id AND C.song_id = S.song_id AND B.artist_id = A.artist_id AND S.song_id = B.song_id \
                             ORDER BY S.song_id ASC;", pid)
