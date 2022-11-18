@@ -46,7 +46,7 @@ def home():
 # SIGN UP PAGE
 @app.route("/signup")
 def signup():
-    if len(user['user_id']) == 0:
+    if user['user_id'] != "":
         return home()
     return render_template('signup.html')
     
