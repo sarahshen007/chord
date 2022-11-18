@@ -406,7 +406,7 @@ def get_followed_artists(uid=''):
     db = g.conn.execute("SELECT DISTINCT A.artist_name, F.artist_id \
                           FROM Follows F, Artists A\
                           WHERE F.user_id = %s and F.artist_id = A.artist_id\
-                            ORDER BY A.artist_name ASC;", user['user_id'])
+                            ORDER BY A.artist_name ASC;", uid)
 
     artists = []
     for i in db:
