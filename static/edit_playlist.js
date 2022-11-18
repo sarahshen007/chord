@@ -1,10 +1,11 @@
-import {getRandomColor} from "./layout.js"
-import { populateListCardContainer } from "./layout.js"
-import {goToPage} from "./layout.js"
-import {createMusicListCard} from "./layout.js"
-
 // FILE FOR edit_playlist.html
 // to edit playlists, make playlists, and delete playlists
+
+
+// imports
+import {getRandomColor} from "./layout.js"
+import { populateListCardContainer } from "./layout.js"
+import {createMusicListCard} from "./layout.js"
 
 // array that contains all songs to change the playlist's contained songs to
 let newPlaylistSongs = playlist.Songs

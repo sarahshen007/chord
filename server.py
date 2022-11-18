@@ -43,12 +43,14 @@ def home():
             q_num = 0
         return render_template('home.html', user=user, queue=q, q_num=q_num)
 
+# SIGN UP PAGE
 @app.route("/signup")
 def signup():
     if len(user['user_id']) == 0:
         return home()
     return render_template('signup.html')
     
+# SIGN UP POST
 @app.route("/signup_post", methods=['POST'])
 def signup_post():
     username = request.get_json()
@@ -141,6 +143,7 @@ def viewProfile(uid=""):
 
     return render_template('user.html', user=user, queue=q, liked_artists=liked_artists, liked_podcasts=liked_podcasts, profile_user=profile_user, created_playlists=created_playlists, q_num=q_num, liked_songs_num=liked_songs_num)
 
+# ALBUM PAGE
 @app.route('/album/<aid>')
 def viewAlbum(aid=""):
     if len(user['user_id']) == 0:
@@ -168,6 +171,7 @@ def viewAlbum(aid=""):
     }
     return render_template('album.html', user=user, queue=q, q_num=q_num, album=album)
 
+# SONG PAGE -> REDIRECTS TO CORRESPONDING ALBUM PAGE
 @app.route('/song/<sid>')
 def viewSong(sid=""):
     db = g.conn.execute("SELECT DISTINCT A.album_name, A.album_id \
@@ -182,6 +186,7 @@ def viewSong(sid=""):
     else:
         return home()
 
+# EPISODE PAGE -> REDIRECTS TO CORRESPONDING PODCAST PAGE
 @app.route('/episode/<eid>')
 def viewEpisode(eid=""):
     db = g.conn.execute("SELECT DISTINCT P.podcast_name, P.podcast_id \
@@ -196,6 +201,7 @@ def viewEpisode(eid=""):
     else:
         return home()
 
+# ARTIST PAGE 
 @app.route('/artist/<aid>')
 def viewArtist(aid=""):
     if len(user['user_id']) == 0:
@@ -224,6 +230,7 @@ def viewArtist(aid=""):
     }
     return render_template('artist.html', user=user, queue=q, q_num=q_num, artist=artist)
 
+# PLAYLIST PAGE
 @app.route('/playlist/<pid>')
 def viewPlaylist(pid=""):
     if len(user['user_id']) == 0:
@@ -252,6 +259,7 @@ def viewPlaylist(pid=""):
     }
     return render_template('playlist.html', user=user, queue=q, q_num=q_num, playlist=playlist)
 
+# PODCAST PAGE
 @app.route('/podcast/<pid>')
 def viewPodcast(pid=""):
     if len(user['user_id']) == 0:
@@ -298,6 +306,7 @@ def is_liked_song(song_id=""):
         return jsonify(1)
     return jsonify(0)
 
+# GET WHETHER A PLAYLIST IS LIKED
 @app.route('/is_liked_playlist/<pid>', methods=['POST'])
 def is_liked_playlist(pid=""):
 
@@ -328,6 +337,7 @@ def follows_artist(aid=''):
         return jsonify(1)
     return jsonify(0)
 
+# GET WHETHER THE USER FOLLOWS A PODCAST
 @app.route('/follows_podcast/<pid>', methods=['GET'])
 def follows_podcast(pid=''):
     db = g.conn.execute("SELECT P.podcast_id, P.podcast_name \
@@ -341,7 +351,6 @@ def follows_podcast(pid=''):
     if pid in set(podcasts):
         return jsonify(1)
     return jsonify(0)
-
 
 # GET SONG RECS BASED ON GENRE
 @app.route('/song_recommendations', methods=['POST'])
@@ -418,6 +427,7 @@ def get_playlists(uid=""):
 
     return {uid: playlists}
 
+# GET ALL PLAYLISTS LIKED BY A USER
 @app.route('/liked_playlists/<uid>', methods=['GET'])
 def get_liked_playlists(uid=""):
     db = g.conn.execute("SELECT P.playlist_name, P.playlist_id, U.username, U.user_id \
@@ -444,7 +454,6 @@ def get_followed_podcasts(uid=""):
 
     return {uid: podcasts}
 
-
 # GET ALL ALBUMS AN ARTIST CREATES
 @app.route('/artist_albums', methods=['GET'])
 def get_artist_albums():
@@ -459,7 +468,6 @@ def get_artist_albums():
     for i in db:
         albums.append(tuple(i))
     return {'albums': albums}
-
 
 # GET PODCAST EPISODES IN A PODCAST
 @app.route('/podcast_episodes', methods=['GET'])
@@ -476,7 +484,6 @@ def get_podcast_episodes():
         episodes.append(tuple(i))
     return {'episodes': episodes}
 
-
 # GET SONGS IN AN ALBUM
 @app.route('/album_songs', methods=['GET'])
 def get_album_songs():
@@ -491,7 +498,6 @@ def get_album_songs():
         album_songs.append(tuple(i))
     return {'album_songs': album_songs}
 
-
 # GET SONGS IN A PLAYLIST
 @app.route('/playlist_songs', methods=['GET'])
 def get_playlist_songs():
@@ -505,7 +511,6 @@ def get_playlist_songs():
     for i in db:
         playlist_songs.append(tuple(i))
     return {'playlist_songs': playlist_songs}
-
 
 # GET SEARCH RESULTS FOR Songs, Podcasts, Episodes, Users, Artists categories
 @app.route('/search', methods=['POST'])
@@ -531,6 +536,7 @@ def search_entities():
     
     return res
 
+# GET SEARCH RESULTS FOR ONLY SONGS
 @app.route('/search_songs', methods=['POST'])
 def search_songs():
     req = request.get_json()
@@ -661,6 +667,7 @@ def dislike_song(song_id=None):
     g.conn.execute("DELETE FROM Likes_song L WHERE L.song_id = %s AND L.user_id = %s", song_id, user_id)
     return {"Deletion": (song_id, user_id)}
 
+# LIKE A PLAYLIST
 @app.route('/like_playlist/<pid>', methods=['POST'])
 def like_playlist(pid=None):
     user_id = user['user_id']
@@ -668,6 +675,7 @@ def like_playlist(pid=None):
     g.conn.execute("INSERT INTO Likes_Playlist(playlist_id, user_id) VALUES(%s, %s)", pid, user_id)
     return {"Insertion": (pid, user_id)}
 
+# DISLIKE A PLAYLIST
 @app.route('/dislike_playlist/<pid>', methods=['POST'])
 def dislike_playlist(pid=None):
     user_id = user['user_id']
@@ -681,9 +689,9 @@ def enqueue_song(song_id = ""):
     global q
     global q_num
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id \
-                         FROM Songs S, Artists A, By B \
-                         WHERE S.song_id = %s AND S.song_id = B.song_id AND A.artist_id = B.artist_id", song_id)
+    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
+                         FROM Songs S, Artists A, By B, Albums C \
+                         WHERE S.song_id = %s AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND C.album_id = B.album_id", song_id)
     
     for i in db:
         q.append(tuple(i))
@@ -695,18 +703,17 @@ def enqueue_song(song_id = ""):
 @app.route('/enqueue_playlist/<playlist_id>', methods=['POST'])
 def enqueue_playlist(playlist_id = ""):
     global q_num
+    global q
 
-    db = g.conn.execute("SELECT S.song_name, S.song_id \
-                         FROM Songs S, Contains C \
-                         WHERE C.playlist_id = %s AND S.song_id = C.song_id", playlist_id)
+    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, B.album_name, B.album_id \
+                         FROM Songs S, Contains C, Artists A, Albums L, By B \
+                         WHERE C.playlist_id = %s AND S.song_id = C.song_id AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND L.album_id = B.album_id", playlist_id)
     
     temp = len(q) - 1
 
     for i in db:
         q.append(tuple(i))
-        temp = q_num + 1
-    
-    q_num = temp
+        q_num = temp + 1
 
     return {"Insertion": q, "Num": q_num}
 
@@ -714,20 +721,21 @@ def enqueue_playlist(playlist_id = ""):
 @app.route('/enqueue_album/<album_id>', methods=['POST'])
 def enqueue_album(album_id = ""):
     global q_num
-    db = g.conn.execute("SELECT S.song_name, S.song_id \
-                         FROM Songs S, By B \
-                         WHERE B.album_id = %s AND S.song_id = B.song_id", album_id)
+    global q
+
+    db = g.conn.execute("SELECT S.song_name, S.song_id, A.artist_name, A.artist_id, C.album_name, C.album_id \
+                         FROM Songs S, Artists A, By B, Albums C \
+                         WHERE C.album_id = %s AND S.song_id = B.song_id AND A.artist_id = B.artist_id AND C.album_id = B.album_id", album_id)
     
     temp = len(q) - 1
 
     for i in db:
         q.append(tuple(i))
-    
-    q_num = temp
+        q_num = temp + 1
     
     return {"Insertion": q, "Num": q_num}
 
-
+# EDIT PLAYLIST PAGE
 @app.route('/edit_playlist/<pid>')
 def editPlaylist(pid='new'):
     if len(user['user_id']) == 0:
@@ -762,6 +770,7 @@ def editPlaylist(pid='new'):
 
     return render_template('edit_playlist.html', user=user, queue=q, q_num=q_num, playlist=playlist)
 
+# EDIT PLAYLIST
 @app.route('/new_playlist', methods=['POST'])
 def newPlaylist():
     req = request.get_json()
@@ -783,6 +792,7 @@ def newPlaylist():
 
     return {'url' : '/playlist/' + pid}
 
+# DELETE PLAYLIST
 @app.route('/del_playlist', methods=['POST'])
 def delPlaylist():
     pid = request.get_json()
@@ -793,14 +803,6 @@ def delPlaylist():
     g.conn.execute("DELETE FROM Playlists P WHERE P.playlist_id = %s;", pid)
 
     return {'url': '/'}
-# @app.route('/old_playlist', methods=['POST'])
-# def oldPlaylist():
-#     req = request.get_json()
-#     pid = str(req['pid'])
-#     pname = req['pname']
-#     songs = req['songs']
-
-#     return {'url': '/playlist/' + pid}
 
 if __name__ == "__main__":
   import click

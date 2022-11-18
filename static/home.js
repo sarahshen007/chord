@@ -1,9 +1,9 @@
-import {getRandomColor} from "./layout.js"
-import {createMusicCard} from "./layout.js"
-import {goToPage} from "./layout.js"
-
 // FILE FOR home.html
 // welcome the user to their home section, give them recommended songs
+
+// imports
+import {createMusicCard} from "./layout.js"
+import {goToPage} from "./layout.js"
 
 // populate 'For you' section on home page
 function populateForYou() {
@@ -52,14 +52,9 @@ $(document).ready(function (){
 
     // populate the 'For you' section
     populateForYou();
-});
-
-
-// when the document loads pt 2
-$(document).ready(function() {
 
     // making sure all the clickable buttons that go to info pages go to that page
     $(".clickable").on('click', function() {
         goToPage(this)
     });
-})
+});
